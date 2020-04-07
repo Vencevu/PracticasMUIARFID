@@ -1,0 +1,60 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 07-abr-2020, 11:42:16
+    Author     : Vicent
+*/
+
+.ventana{
+-fx-background-color: black;
+}
+
+.chart-pie-label{
+    -fx-fill: darkorange;
+}
+
+.titulo{
+    -fx-text-fill: darkorange;
+    -fx-font-size: 24pt;
+    -fx-text-alignment: center;
+    -fx-font-weight: bold;
+}
+
+.button{
+    -fx-text-fill: darkorange;
+    -fx-font-weight: bold;
+    -fx-background-color: dimgrey;
+}
+
+.default-color0.chart-bar{
+    -fx-bar-fill: darkorange;    
+}
+
+.tool-bar{
+    -fx-background-color: dimgrey;
+}
+
+.chart-alternative-row-fill{
+    -fx-fill:black;
+    -fx-stroke: transparent;
+    -fx-stroke-width: 0;
+}
+
+.chart-plot-background{
+    -fx-background-color:dimgrey;
+}
+
+.chart-vertical-grid-lines{
+    -fx-stroke: darkorange;
+}
+
+.chart-horizontal-grid-lines{
+    -fx-stroke: darkorange;
+}
+
+.axis{
+    -fx-tick-label-fill:darkorange;
+}
