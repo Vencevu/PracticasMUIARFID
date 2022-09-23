@@ -1,3 +1,0 @@
-module Main where
-import TestQueue
-main = show (Queue [e] [r])
