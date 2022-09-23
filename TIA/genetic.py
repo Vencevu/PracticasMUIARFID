@@ -1,9 +1,10 @@
 from numpy.random import randint
 from numpy.random import rand
+import random
 
 # Funcion Objetivo
 def fo(x, y):
-	return sum([y[t]["puntos"] for t in x])
+	return sum([y[t]["puntos"] for t in x])/len(x)
 
 # Seleccion por competicion
 def selection(pop, scores, k=3):
@@ -18,23 +19,17 @@ def selection(pop, scores, k=3):
 # Cruce de dos padres para crear dos hijos
 def crossover(p1, p2, r_cross):
 	# Los hijos son copias de los padres por defecto
-	c1, c2 = p1.copy(), p2.copy()
-	# check for recombination
+	c1 = p1.copy()
 	if rand() < r_cross:
-		# select crossover point that is not on the end of the string
 		pt = randint(1, len(p1)-2)
-		# Hacemos el cruce
 		c1 = p1[:pt] + p2[pt:]
-		c2 = p2[:pt] + p1[pt:]
-	return [c1, c2]
+	return [c1]
 
 # Mutacion
-def mutation(bitstring, r_mut, jugadores):
-	for i in range(len(bitstring)):
-		# check for a mutation
+def mutation(individuo, r_mut, jugadores):
+	for i in range(len(individuo)):
 		if rand() < r_mut:
-			# flip the bit
-			bitstring[i] = randint(0, len(jugadores)-1)
+			individuo[i] = randint(0, len(jugadores)-1)
 
 # Algoritmo Genetico mamalongo
 def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
@@ -62,32 +57,23 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				mutation(c, r_mut, jugadores)
 				children.append(c)
 		# Reemplazamos poblacion
-		pop = children
+		pop = pop[int(len(pop)/2):]+children
 	return [best, best_eval]
 
-iteraciones = 100
+def generarJugadores(n):
+	res = {}
+	for i in range(0, n):
+		res[i] = {"tipo": randint(0, 4), "puntos": round(random.uniform(10.0, 80.0),2), "precio": randint(200, 10000)}
+	return res
+
+generaciones = 100
 tamaño_poblacion = 100
-jugadores = {
-    0:{"tipo":0, "puntos":16.5, "precio":500},
-    1:{"tipo":1, "puntos":26.5, "precio":700},
-    2:{"tipo":2, "puntos":46.5, "precio":400},
-    3:{"tipo":3, "puntos":6.5, "precio":200},
-    4:{"tipo":0, "puntos":76.5, "precio":1000},
-    5:{"tipo":1, "puntos":36.5, "precio":600},
-    6:{"tipo":2, "puntos":56.5, "precio":800},
-    7:{"tipo":3, "puntos":66.5, "precio":700},
-    8:{"tipo":0, "puntos":26.5, "precio":200},
-    9:{"tipo":1, "puntos":86.5, "precio":900},
-    10:{"tipo":2, "puntos":26.5, "precio":300},
-    11:{"tipo":3, "puntos":36.5, "precio":600},
-    12:{"tipo":0, "puntos":46.5, "precio":400},
-    13:{"tipo":1, "puntos":26.5, "precio":300},
-    }
-# crossover rate
+jugadores = generarJugadores(1000)
+# Ratio de cruce
 r_cross = 0.9
-# mutation rate
+# Ratio de mutacion
 r_mut = 1.0 / float(7)
-# perform the genetic algorithm search
-best, score = genetic_algorithm(fo, iteraciones, tamaño_poblacion, r_cross, r_mut, jugadores)
+
+best, score = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, r_mut, jugadores)
 print('Done!')
 print('f(%s) = %f' % (best, score))
