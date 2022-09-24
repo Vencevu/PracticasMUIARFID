@@ -1,10 +1,17 @@
 from numpy.random import randint
 from numpy.random import rand
+import argparse
+import names
 import random
 
 # Funcion Objetivo
-def fo(x, y):
-	return sum([y[t]["puntos"] for t in x])/len(x)
+def fo(individuo, jugadores):
+	puntos = sum([jugadores[t]["puntos"] for t in individuo])/len(individuo)
+	coste = sum([jugadores[t]["precio"] for t in individuo])
+	if coste <= 60000:
+		return puntos
+	else:
+		return 0
 
 # Seleccion por competicion
 def selection(pop, scores, k=3):
@@ -60,20 +67,44 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		pop = pop[int(len(pop)/2):]+children
 	return [best, best_eval]
 
-def generarJugadores(n):
+def generarJugadores(n, generarNombres):
 	res = {}
 	for i in range(0, n):
-		res[i] = {"tipo": randint(0, 4), "puntos": round(random.uniform(10.0, 80.0),2), "precio": randint(200, 10000)}
+		p = round(random.uniform(10.0, 80.0),2)
+		res[i] = {"tipo": randint(0, 4), "puntos": p, "precio": randint(int(2000*p/10), int(3000*p/10))}
+		if(generarNombres):
+			res[i]["nombre"] = names.get_full_name()
 	return res
 
-generaciones = 100
-tamaño_poblacion = 100
-jugadores = generarJugadores(1000)
-# Ratio de cruce
-r_cross = 0.9
-# Ratio de mutacion
-r_mut = 1.0 / float(7)
+
+parser = argparse.ArgumentParser(description='Algoritmo genetico para seleccionar jugadores de baloncesto')
+
+parser.add_argument('generaciones', type=int,
+                    help='Numero de generaciones')
+
+parser.add_argument('poblacion', type=int,
+                    help='Tamaño de la poblacion')
+
+parser.add_argument('r_mut', type=float,
+                    help='Ratio de mutacion')
+
+parser.add_argument('r_cruce', type=float,
+                    help='Ratio de cruce')
+
+parser.add_argument('--nombres', action='store_true',
+                    help='Generar nombres para los jugadores')
+
+args = parser.parse_args()
+
+generaciones = args.generaciones
+tamaño_poblacion = args.poblacion
+jugadores = generarJugadores(1000, args.nombres)
+r_cross = args.r_cruce
+r_mut = args.r_mut
 
 best, score = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, r_mut, jugadores)
 print('Done!')
-print('f(%s) = %f' % (best, score))
+for j in best:
+	print(jugadores[j])
+print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
+print('Puntuacion: %i' % (sum([jugadores[j]["puntos"] for j in best])/len(best)))
