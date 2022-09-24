@@ -1,3 +1,4 @@
+from operator import countOf
 from numpy.random import randint
 from numpy.random import rand
 import argparse
@@ -8,7 +9,12 @@ import random
 def fo(individuo, jugadores):
 	puntos = sum([jugadores[t]["puntos"] for t in individuo])/len(individuo)
 	coste = sum([jugadores[t]["precio"] for t in individuo])
-	if coste <= 60000:
+	num0 = countOf([jugadores[t]["tipo"] for t in individuo], 0) == 2
+	num1 = countOf([jugadores[t]["tipo"] for t in individuo], 1) == 2
+	num2 = countOf([jugadores[t]["tipo"] for t in individuo], 2) == 2
+	num3 = countOf([jugadores[t]["tipo"] for t in individuo], 3) == 2
+	num4 = countOf([jugadores[t]["tipo"] for t in individuo], 4) == 1
+	if coste <= 60000 and num0 and num1 and num2 and num3 and num4:
 		return puntos
 	else:
 		return 0
@@ -26,11 +32,12 @@ def selection(pop, scores, k=3):
 # Cruce de dos padres para crear dos hijos
 def crossover(p1, p2, r_cross):
 	# Los hijos son copias de los padres por defecto
-	c1 = p1.copy()
+	c1, c2 = p1.copy(), p2.copy()
 	if rand() < r_cross:
 		pt = randint(1, len(p1)-2)
 		c1 = p1[:pt] + p2[pt:]
-	return [c1]
+		c2 = p1[pt:] + p2[:pt]
+	return [c1, c2]
 
 # Mutacion
 def mutation(individuo, r_mut, jugadores):
@@ -53,10 +60,10 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
 		# Padres seleccionados
-		selected = [selection(pop, scores) for _ in range(n_pop)]
+		selected = [selection(pop, scores) for _ in range(n_pop//2)]
 		# Siguiente generacion
 		children = list()
-		for i in range(0, n_pop, 2):
+		for i in range(0, len(selected), 2):
 			# Cogemos los padres por pares
 			p1, p2 = selected[i], selected[i+1]
 			# Cruce y mutacion
@@ -71,7 +78,7 @@ def generarJugadores(n, generarNombres):
 	res = {}
 	for i in range(0, n):
 		p = round(random.uniform(10.0, 80.0),2)
-		res[i] = {"tipo": randint(0, 4), "puntos": p, "precio": randint(int(2000*p/10), int(3000*p/10))}
+		res[i] = {"tipo": randint(0, 5), "puntos": p, "precio": randint(int(2000*p/10), int(3000*p/10))}
 		if(generarNombres):
 			res[i]["nombre"] = names.get_full_name()
 	return res
