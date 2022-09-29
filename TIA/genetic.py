@@ -48,6 +48,7 @@ def mutation(individuo, r_mut, jugadores):
 
 # Algoritmo Genetico mamalongo
 def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
+	inmortales = list()
 	# Poblacion Inicial
 	pop = [randint(0, len(jugadores) - 1, 9).tolist() for _ in range(n_pop)]
 	best, best_eval = 0, objective(pop[0], jugadores)
@@ -60,6 +61,9 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 			if scores[i] > best_eval:
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
+		# Los mejores no mueren
+		if best not in inmortales and best != 0:
+			inmortales.append(best)
 		# Padres seleccionados
 		selected = [selection(pop, scores) for _ in range(n_pop//2)]
 		# Siguiente generacion
@@ -72,7 +76,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				mutation(c, r_mut, jugadores)
 				children.append(c)
 		# Reemplazamos poblacion
-		pop = pop[int(len(pop)/2):]+children
+		pop = pop[(int(len(pop)/2)+len(inmortales)):]+children+inmortales
 	return [best, best_eval]
 
 def cargarJugadores():
@@ -80,7 +84,7 @@ def cargarJugadores():
 	with open("jugadores.csv") as f:
 		reader = csv.reader(f, delimiter=';')
 		for row in reader:
-			res[row[0]] = {"Nombre": row[1], "Tipo": row[2], "Puntos": row[3], "Precio": row[4]}
+			res[int(row[0])] = {"nombre": row[1], "tipo": int(row[2]), "puntos": float(row[3]), "precio": int(row[4])}
 	return res
 
 parser = argparse.ArgumentParser(description='Algoritmo genetico para seleccionar jugadores de baloncesto')
