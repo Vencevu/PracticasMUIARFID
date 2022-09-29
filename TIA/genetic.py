@@ -1,8 +1,9 @@
 from operator import countOf
+import re
 from numpy.random import randint
 from numpy.random import rand
 import argparse
-import names
+import csv
 import random
 
 # Funcion Objetivo
@@ -74,15 +75,13 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		pop = pop[int(len(pop)/2):]+children
 	return [best, best_eval]
 
-def generarJugadores(n, generarNombres):
+def cargarJugadores():
 	res = {}
-	for i in range(0, n):
-		p = round(random.uniform(10.0, 80.0),2)
-		res[i] = {"tipo": randint(0, 5), "puntos": p, "precio": randint(int(2000*p/10), int(3000*p/10))}
-		if(generarNombres):
-			res[i]["nombre"] = names.get_full_name()
+	with open("jugadores.csv") as f:
+		reader = csv.reader(f, delimiter=';')
+		for row in reader:
+			res[row[0]] = {"Nombre": row[1], "Tipo": row[2], "Puntos": row[3], "Precio": row[4]}
 	return res
-
 
 parser = argparse.ArgumentParser(description='Algoritmo genetico para seleccionar jugadores de baloncesto')
 
@@ -98,14 +97,11 @@ parser.add_argument('r_mut', type=float,
 parser.add_argument('r_cruce', type=float,
                     help='Ratio de cruce')
 
-parser.add_argument('--nombres', action='store_true',
-                    help='Generar nombres para los jugadores')
-
 args = parser.parse_args()
 
 generaciones = args.generaciones
 tamaño_poblacion = args.poblacion
-jugadores = generarJugadores(1000, args.nombres)
+jugadores = cargarJugadores()
 r_cross = args.r_cruce
 r_mut = args.r_mut
 
