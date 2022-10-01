@@ -1,5 +1,4 @@
 from operator import countOf
-import re
 from numpy.random import randint
 from numpy.random import rand
 import matplotlib.pyplot as plt
