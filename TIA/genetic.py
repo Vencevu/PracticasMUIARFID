@@ -40,6 +40,17 @@ def crossover(p1, p2, r_cross):
 		c2 = p1[pt:] + p2[:pt]
 	return [c1, c2]
 
+# Reemplazo de la poblacion
+def pop_replace(pop, children, inmortales):
+	new_pop = []
+	no_elements_to_keep = len(pop) // 2
+	new_pop = random.sample(pop, no_elements_to_keep) + children
+	for inmortal in inmortales:
+		if inmortal not in new_pop:
+			new_pop.append(inmortal)
+	return new_pop
+
+
 # Mutacion
 def mutation(individuo, r_mut, jugadores):
 	for i in range(len(individuo)):
@@ -57,7 +68,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		# Evaluamos a todos los individuos
 		scores = [objective(c, jugadores) for c in pop]
 		# Buscamos al mejor individuo
-		for i in range(n_pop):
+		for i in range(len(pop)):
 			if scores[i] > best_eval:
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
@@ -65,18 +76,21 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		if best not in inmortales and best != 0:
 			inmortales.append(best)
 		# Padres seleccionados
-		selected = [selection(pop, scores) for _ in range(n_pop//2)]
+		selected = [selection(pop, scores) for _ in range(len(pop)//2)]
 		# Siguiente generacion
 		children = list()
 		for i in range(0, len(selected), 2):
 			# Cogemos los padres por pares
-			p1, p2 = selected[i], selected[i+1]
+			if i+1 >= len(selected):
+				p1, p2 = selected[i], selected[randint(0, len(selected))]
+			else:
+				p1, p2 = selected[i], selected[i+1]
 			# Cruce y mutacion
 			for c in crossover(p1, p2, r_cross):
 				mutation(c, r_mut, jugadores)
 				children.append(c)
 		# Reemplazamos poblacion
-		pop = pop[(int(len(pop)/2)+len(inmortales)):]+children+inmortales
+		pop = pop_replace(pop, children, inmortales)
 	return [best, best_eval]
 
 def cargarJugadores():
