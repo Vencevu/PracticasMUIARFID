@@ -2,6 +2,7 @@ from operator import countOf
 import re
 from numpy.random import randint
 from numpy.random import rand
+import matplotlib.pyplot as plt
 import argparse
 import csv
 import random
@@ -60,6 +61,8 @@ def mutation(individuo, r_mut, jugadores):
 # Algoritmo Genetico mamalongo
 def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 	inmortales = list()
+	llamadas_fitness = 0
+	registro = []
 	# Poblacion Inicial
 	pop = [randint(0, len(jugadores) - 1, 9).tolist() for _ in range(n_pop)]
 	best, best_eval = 0, objective(pop[0], jugadores)
@@ -67,11 +70,13 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 	for gen in range(n_iter):
 		# Evaluamos a todos los individuos
 		scores = [objective(c, jugadores) for c in pop]
+		llamadas_fitness += len(pop)
 		# Buscamos al mejor individuo
 		for i in range(len(pop)):
 			if scores[i] > best_eval:
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
+				registro.append((best_eval, llamadas_fitness))
 		# Los mejores no mueren
 		if best not in inmortales and best != 0:
 			inmortales.append(best)
@@ -91,7 +96,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				children.append(c)
 		# Reemplazamos poblacion
 		pop = pop_replace(pop, children, inmortales)
-	return [best, best_eval]
+	return [best, best_eval, registro]
 
 def cargarJugadores():
 	res = {}
@@ -123,9 +128,18 @@ jugadores = cargarJugadores()
 r_cross = args.r_cruce
 r_mut = args.r_mut
 
-best, score = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, r_mut, jugadores)
+best, score, resultados = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, r_mut, jugadores)
 print('Done!')
 for j in best:
 	print(jugadores[j])
 print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
 print('Puntuacion: %i' % (sum([jugadores[j]["puntos"] for j in best])/len(best)))
+
+x = [i[1] for i in resultados]
+y = [i[0] for i in resultados]
+
+plt.plot(x, y)
+plt.title("Algoritmo genetico")
+plt.xlabel("Individuos evaluados")
+plt.ylabel("Fitness")
+plt.show()
