@@ -62,10 +62,11 @@ def mutation(individuo, r_mut, jugadores):
 def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 	inmortales = list()
 	llamadas_fitness = 0
-	registro = []
+	registro = [(0, 0)]
 	# Poblacion Inicial
 	pop = [randint(0, len(jugadores) - 1, 9).tolist() for _ in range(n_pop)]
-	best, best_eval = 0, objective(pop[0], jugadores)
+	best, best_eval = pop[0], objective(pop[0], jugadores)
+	
 	# Generaciones
 	for gen in range(n_iter):
 		# Evaluamos a todos los individuos
@@ -76,7 +77,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 			if scores[i] > best_eval:
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
-				registro.append((best_eval, llamadas_fitness))
+				registro.append((best_eval, gen))
 		# Los mejores no mueren
 		if best not in inmortales and best != 0:
 			inmortales.append(best)
@@ -96,6 +97,8 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				children.append(c)
 		# Reemplazamos poblacion
 		pop = pop_replace(pop, children, inmortales)
+		if gen == n_iter - 1:
+			registro.append((best_eval, gen))
 	return [best, best_eval, registro]
 
 def cargarJugadores():
@@ -108,38 +111,42 @@ def cargarJugadores():
 
 parser = argparse.ArgumentParser(description='Algoritmo genetico para seleccionar jugadores de baloncesto')
 
-parser.add_argument('generaciones', type=int,
+parser.add_argument('-g', type=int,
                     help='Numero de generaciones')
 
-parser.add_argument('poblacion', type=int,
-                    help='Tamaño de la poblacion')
+parser.add_argument("-p", type=int, default=[], nargs="+",
+					help="Tamaños de poblacion iniciales")
 
-parser.add_argument('r_mut', type=float,
+parser.add_argument('-rm', type=float,
                     help='Ratio de mutacion')
 
-parser.add_argument('r_cruce', type=float,
+parser.add_argument('-rc', type=float,
                     help='Ratio de cruce')
 
 args = parser.parse_args()
 
-generaciones = args.generaciones
-tamaño_poblacion = args.poblacion
+generaciones = args.g
+tamaño_poblacion = args.p
 jugadores = cargarJugadores()
-r_cross = args.r_cruce
-r_mut = args.r_mut
+r_cross = args.rc
+r_mut = args.rm
 
-best, score, resultados = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, r_mut, jugadores)
-print('Done!')
-for j in best:
-	print(jugadores[j])
-print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
-print('Puntuacion: %i' % (sum([jugadores[j]["puntos"] for j in best])/len(best)))
+for poblacion in tamaño_poblacion:
+	best, score, resultados = genetic_algorithm(fo, generaciones, poblacion, r_cross, r_mut, jugadores)
+	print(resultados)
+	print('Done!')
+	for j in best:
+		print(jugadores[j])
+	print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
+	print('Puntuacion: %i' % (sum([jugadores[j]["puntos"] for j in best])/len(best)))
 
-x = [i[1] for i in resultados]
-y = [i[0] for i in resultados]
+	x = [i[1] for i in resultados]
+	y = [i[0] for i in resultados]
 
-plt.plot(x, y)
-plt.title("Algoritmo genetico")
-plt.xlabel("Individuos evaluados")
+	plt.plot(x, y, label=str(poblacion))
+
+plt.title("Mutacion %f Cruce %f" % (r_mut, r_cross))
+plt.xlabel("Llamadas a funcion fitness")
+plt.legend(loc="upper left")
 plt.ylabel("Fitness")
 plt.show()
