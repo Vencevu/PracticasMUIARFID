@@ -145,7 +145,7 @@ for poblacion in tamaño_poblacion:
 
 	plt.plot(x, y, label=str(poblacion))
 
-plt.title("Mutacion %f Cruce %f" % (r_mut, r_cross))
+plt.title("Mutacion %.2f Cruce %.2f" % (r_mut, r_cross))
 plt.xlabel("Llamadas a funcion fitness")
 plt.legend(loc="upper left")
 plt.ylabel("Fitness")
