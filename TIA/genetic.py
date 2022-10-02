@@ -76,7 +76,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 			if scores[i] > best_eval:
 				best, best_eval = pop[i], scores[i]
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
-				registro.append((best_eval, gen))
+				registro.append((best_eval, llamadas_fitness))
 		# Los mejores no mueren
 		if best not in inmortales and best != 0:
 			inmortales.append(best)
@@ -145,7 +145,7 @@ for poblacion in tamaño_poblacion:
 	plt.plot(x, y, label=str(poblacion))
 
 plt.title("Mutacion %.2f Cruce %.2f" % (r_mut, r_cross))
-plt.xlabel("Llamadas a funcion fitness")
+plt.xlabel("Soluciones generadas")
 plt.legend(loc="upper left")
 plt.ylabel("Fitness")
 plt.show()
