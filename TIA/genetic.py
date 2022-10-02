@@ -1,6 +1,7 @@
-from operator import countOf
 from numpy.random import randint
+from collections import Counter
 from numpy.random import rand
+import itertools
 import matplotlib.pyplot as plt
 import argparse
 import csv
@@ -8,15 +9,15 @@ import random
 
 # Funcion Objetivo
 def fo(individuo, jugadores):
-	genes = [jugadores[t] for t in individuo]
-	puntos = sum([t["puntos"] for t in genes])/len(individuo)
-	coste = sum([t["precio"] for t in genes])
-	num0 = countOf([t["tipo"] for t in genes], 0) == 2
-	num1 = countOf([t["tipo"] for t in genes], 1) == 2
-	num2 = countOf([t["tipo"] for t in genes], 2) == 2
-	num3 = countOf([t["tipo"] for t in genes], 3) == 2
-	num4 = countOf([t["tipo"] for t in genes], 4) == 1
-	if coste <= 60000 and num0 and num1 and num2 and num3 and num4:
+	puntos, coste = 0, 0
+	posiciones = []
+	for gen in individuo:
+		puntos += jugadores[gen]["puntos"]
+		coste += jugadores[gen]["precio"]
+		posiciones.append(jugadores[gen]["tipo"])
+	puntos /= len(individuo)
+	contador = Counter(posiciones)
+	if coste <= 60000 and contador[0] == contador[1] == contador[2] == contador[3] and contador[4] == 1:
 		return puntos
 	else:
 		return 0
@@ -44,7 +45,9 @@ def crossover(p1, p2):
 def pop_replace(pop, children, inmortales):
 	new_pop = []
 	no_elements_to_keep = int(len(pop) * 0.5)
-	new_pop = random.sample(pop, no_elements_to_keep) + children
+	new_pop = list(random.sample(pop, no_elements_to_keep) + children)
+	new_pop.sort()
+	new_pop = list(k for k,_ in itertools.groupby(new_pop))
 	for inmortal in inmortales:
 		if inmortal not in new_pop:
 			new_pop.append(inmortal)
@@ -52,10 +55,10 @@ def pop_replace(pop, children, inmortales):
 
 
 # Mutacion
-def mutation(individuo, r_mut, jugadores):
+def mutation(individuo, r_mut, num_jugadores):
 	for i in range(len(individuo)):
 		if rand() < r_mut:
-			individuo[i] = randint(0, len(jugadores)-1)
+			individuo[i] = randint(0, num_jugadores-1)
 
 # Algoritmo Genetico mamalongo
 def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
@@ -92,7 +95,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				p1, p2 = selected[i], selected[i+1]
 			# Cruce y mutacion
 			for c in crossover(p1, p2):
-				mutation(c, r_mut, jugadores)
+				mutation(c, r_mut, len(jugadores))
 				children.append(c)
 		# Reemplazamos poblacion
 		pop = pop_replace(pop, children, inmortales)
