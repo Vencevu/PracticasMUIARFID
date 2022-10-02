@@ -31,13 +31,12 @@ def selection(pop, scores, k=3):
 	return pop[selection_ix]
 
 # Cruce de dos padres para crear dos hijos
-def crossover(p1, p2, r_cross):
+def crossover(p1, p2):
 	# Los hijos son copias de los padres por defecto
 	c1, c2 = p1.copy(), p2.copy()
-	if rand() < r_cross:
-		pt = randint(1, len(p1)-2)
-		c1 = p1[:pt] + p2[pt:]
-		c2 = p1[pt:] + p2[:pt]
+	pt = randint(1, len(p1)-2)
+	c1 = p1[:pt] + p2[pt:]
+	c2 = p1[pt:] + p2[:pt]
 	return [c1, c2]
 
 # Reemplazo de la poblacion
@@ -91,7 +90,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 			else:
 				p1, p2 = selected[i], selected[i+1]
 			# Cruce y mutacion
-			for c in crossover(p1, p2, r_cross):
+			for c in crossover(p1, p2):
 				mutation(c, r_mut, jugadores)
 				children.append(c)
 		# Reemplazamos poblacion
