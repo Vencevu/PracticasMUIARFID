@@ -8,13 +8,14 @@ import random
 
 # Funcion Objetivo
 def fo(individuo, jugadores):
-	puntos = sum([jugadores[t]["puntos"] for t in individuo])/len(individuo)
-	coste = sum([jugadores[t]["precio"] for t in individuo])
-	num0 = countOf([jugadores[t]["tipo"] for t in individuo], 0) == 2
-	num1 = countOf([jugadores[t]["tipo"] for t in individuo], 1) == 2
-	num2 = countOf([jugadores[t]["tipo"] for t in individuo], 2) == 2
-	num3 = countOf([jugadores[t]["tipo"] for t in individuo], 3) == 2
-	num4 = countOf([jugadores[t]["tipo"] for t in individuo], 4) == 1
+	genes = [jugadores[t] for t in individuo]
+	puntos = sum([t["puntos"] for t in genes])/len(individuo)
+	coste = sum([t["precio"] for t in genes])
+	num0 = countOf([t["tipo"] for t in genes], 0) == 2
+	num1 = countOf([t["tipo"] for t in genes], 1) == 2
+	num2 = countOf([t["tipo"] for t in genes], 2) == 2
+	num3 = countOf([t["tipo"] for t in genes], 3) == 2
+	num4 = countOf([t["tipo"] for t in genes], 4) == 1
 	if coste <= 60000 and num0 and num1 and num2 and num3 and num4:
 		return puntos
 	else:
