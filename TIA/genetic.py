@@ -42,7 +42,7 @@ def crossover(p1, p2):
 # Reemplazo de la poblacion
 def pop_replace(pop, children, inmortales):
 	new_pop = []
-	no_elements_to_keep = len(pop) // 2
+	no_elements_to_keep = int(len(pop) * 0.5)
 	new_pop = random.sample(pop, no_elements_to_keep) + children
 	for inmortal in inmortales:
 		if inmortal not in new_pop:
@@ -77,7 +77,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
 				registro.append((best_eval, llamadas_fitness))
 		# Los mejores no mueren
-		if best not in inmortales and best != 0:
+		if best not in inmortales:
 			inmortales.append(best)
 		# Padres seleccionados
 		selected = [selection(pop, scores) for _ in range(int(len(pop)*r_cross))]
@@ -96,7 +96,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		# Reemplazamos poblacion
 		pop = pop_replace(pop, children, inmortales)
 		if gen == n_iter - 1:
-			registro.append((best_eval, gen))
+			registro.append((best_eval, llamadas_fitness))
 	return [best, best_eval, registro]
 
 def cargarJugadores():
@@ -145,6 +145,6 @@ for poblacion in tamaño_poblacion:
 
 plt.title("Mutacion %.2f Cruce %.2f" % (r_mut, r_cross))
 plt.xlabel("Soluciones generadas")
-plt.legend(loc="upper left")
+plt.legend(loc="lower right")
 plt.ylabel("Fitness")
 plt.show()
