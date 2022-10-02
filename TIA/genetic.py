@@ -81,7 +81,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		if best not in inmortales and best != 0:
 			inmortales.append(best)
 		# Padres seleccionados
-		selected = [selection(pop, scores) for _ in range(len(pop)//2)]
+		selected = [selection(pop, scores) for _ in range(int(len(pop)*r_cross))]
 		# Siguiente generacion
 		children = list()
 		for i in range(0, len(selected), 2):
