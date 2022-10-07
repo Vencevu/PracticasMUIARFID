@@ -24,7 +24,7 @@ def fo(individuo, jugadores):
 
 # Seleccion por competicion
 def selection(pop, scores, k=3):
-	# Seleccionamos un individuo aleatorio
+	# Seleccionamos un individuo aleatorio y lo hacemos competir con k-1 individuos aleatorios
 	selection_ix = randint(len(pop))
 	for ix in randint(0, len(pop), k-1):
 		# buscamos un individuo mejor
@@ -84,7 +84,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 		if best not in inmortales:
 			inmortales.append(best)
 		# Padres seleccionados
-		selected = [selection(pop, scores) for _ in range(int(len(pop)*r_cross))]
+		selected = [selection(pop, scores, 10) for _ in range(int(len(pop)*r_cross))]
 		# Siguiente generacion
 		children = list()
 		for i in range(0, len(selected), 2):
