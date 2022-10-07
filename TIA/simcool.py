@@ -6,23 +6,24 @@ import csv
 
 def simulated_annealing(initial_state, jugadores):
     """Peforms simulated annealing to find a solution"""
-    initial_temp = 300
+    initial_temp = 900
     final_temp = .1
     alpha = 0.01
     
     current_temp = initial_temp
-
+    
     # Start by initializing the current state with the initial state
     current_state = initial_state
+    solution = current_state
 
     while current_temp > final_temp:
         neighbor = random.choice(get_neighbors(current_state, jugadores))
 
         # Check if neighbor is best so far
-        cost_diff = get_cost(neighbor, jugadores) - get_cost(current_state, jugadores)
+        cost_diff = get_cost(current_state, jugadores) - get_cost(neighbor, jugadores)
 
         # if the new solution is better, accept it
-        if cost_diff > 0:
+        if cost_diff < 0:
             current_state = neighbor
             solution = current_state
             print("New Best: ", solution)
@@ -49,13 +50,13 @@ def get_cost(state, jugadores):
     if coste <= 60000 and contador[0] == contador[1] == contador[2] == contador[3] and contador[4] == 1:
         return puntos
     else:
-        return 0
+        return -puntos
     
 def get_neighbors(state, jugadores):
     """Returns neighbors of the argument state for your solution."""
     res = []
-    for _ in range(100):
-        new_state = state
+    for _ in range(10):
+        new_state = [x for x in state]
         new_state[randint(0, 9)] = randint(0, len(jugadores)-1)
         res.append(new_state)
     return res
