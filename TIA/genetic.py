@@ -47,8 +47,6 @@ def pop_replace(pop, children, inmortales):
 	new_pop = []
 	no_elements_to_keep = int(len(pop) * 0.5)
 	new_pop = list(random.sample(pop, no_elements_to_keep) + children)
-	new_pop.sort()
-	new_pop = list(k for k,_ in itertools.groupby(new_pop))
 	for inmortal in inmortales:
 		if inmortal not in new_pop:
 			new_pop.append(inmortal)
@@ -82,7 +80,7 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut, jugadores):
 				print(">%d, new best f(%s) = %.3f" % (gen,  pop[i], scores[i]))
 				registro.append((best_eval, llamadas_fitness))
 		# Los mejores no mueren
-		if best not in inmortales:
+		if best not in inmortales and best != pop[0]:
 			inmortales.append(best)
 		# Padres seleccionados
 		selected = [selection(pop, scores, 10) for _ in range(int(len(pop)*r_cross))]
@@ -117,10 +115,10 @@ parser = argparse.ArgumentParser(description='Algoritmo genetico para selecciona
 parser.add_argument('-g', type=int,
                     help='Numero de generaciones')
 
-parser.add_argument("-p", type=int, default=[], nargs="+",
-					help="Tamaños de poblacion iniciales")
+parser.add_argument("-p", type=int,
+					help="Tamaño de poblacion iniciales")
 
-parser.add_argument('-rm', type=float,
+parser.add_argument("-rm", type=float, default=[], nargs="+",
                     help='Ratio de mutacion')
 
 parser.add_argument('-rc', type=float,
@@ -134,8 +132,8 @@ jugadores = cargarJugadores()
 r_cross = args.rc
 r_mut = args.rm
 
-for poblacion in tamaño_poblacion:
-	best, score, resultados = genetic_algorithm(fo, generaciones, poblacion, r_cross, r_mut, jugadores)
+for rms in r_mut:
+	best, score, resultados = genetic_algorithm(fo, generaciones, tamaño_poblacion, r_cross, rms, jugadores)
 	print(resultados)
 	print('Done!')
 	for j in best:
@@ -146,9 +144,9 @@ for poblacion in tamaño_poblacion:
 	x = [i[1] for i in resultados]
 	y = [i[0] for i in resultados]
 
-	plt.plot(x, y, label=str(poblacion))
+	plt.plot(x, y, label=str(rms))
 
-plt.title("Mutacion %.2f Cruce %.2f" % (r_mut, r_cross))
+plt.title("Algoritmo genético")
 plt.xlabel("Soluciones generadas")
 plt.legend(loc="lower right")
 plt.ylabel("Fitness")

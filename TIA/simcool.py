@@ -1,5 +1,6 @@
 from collections import Counter
 import random
+import matplotlib.pyplot as plt
 from numpy.random import randint
 import math
 import csv
@@ -11,11 +12,11 @@ def simulated_annealing(initial_state, jugadores):
     alpha = 0.01
     
     current_temp = initial_temp
-    
+    results = []
     # Start by initializing the current state with the initial state
     current_state = initial_state
     solution = current_state
-
+    iteracion = 1
     while current_temp > final_temp:
         neighbor = random.choice(get_neighbors(current_state, jugadores))
 
@@ -37,8 +38,10 @@ def simulated_annealing(initial_state, jugadores):
                 print("Worst accepted: ", solution)
         # decrement the temperature
         current_temp /= (1+(alpha*current_temp))
+        results.append((get_cost(current_state, jugadores), iteracion))
+        iteracion += 1
 
-    return solution
+    return solution, results
 
 def get_cost(state, jugadores):
     """Calculates cost of the argument state for your solution."""
@@ -78,9 +81,17 @@ def cargarJugadores():
 
 jugadores = cargarJugadores()
 init_state = [random.randint(0, len(jugadores)-1) for _ in range(9)]
-best = simulated_annealing(init_state, jugadores)
+best, resultados = simulated_annealing(init_state, jugadores)
 print("Done", best)
 for j in best:
     print(jugadores[j])
 print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
 print('Puntuacion: %i' % (get_cost(best, jugadores)))
+x = [i[1] for i in resultados]
+y = [i[0] for i in resultados]
+
+plt.plot(x,y)
+plt.title("Enfriamiento simulado")
+plt.xlabel("Iteracion")
+plt.ylabel("Fitness")
+plt.show()
