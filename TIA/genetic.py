@@ -11,13 +11,14 @@ import random
 def fo(individuo, jugadores):
 	puntos, coste = 0, 0
 	posiciones = []
+	no_repeat = len(list(set(individuo))) == len(individuo)
 	for gen in individuo:
 		puntos += jugadores[gen]["puntos"]
 		coste += jugadores[gen]["precio"]
 		posiciones.append(jugadores[gen]["tipo"])
 	puntos /= len(individuo)
 	contador = Counter(posiciones)
-	if coste <= 60000 and contador[0] == contador[1] == contador[2] == contador[3] and contador[4] == 1:
+	if coste <= 60000 and contador[0] == contador[1] == contador[2] == contador[3] and contador[4] == 1 and no_repeat:
 		return puntos
 	else:
 		return 0

@@ -6,7 +6,7 @@ import csv
 
 def simulated_annealing(initial_state, jugadores):
     """Peforms simulated annealing to find a solution"""
-    initial_temp = 15000
+    initial_temp = 1500000
     final_temp = .1
     alpha = 0.01
     
@@ -20,7 +20,9 @@ def simulated_annealing(initial_state, jugadores):
         neighbor = random.choice(get_neighbors(current_state, jugadores))
 
         # Check if neighbor is best so far
-        cost_diff = get_cost(current_state, jugadores) - get_cost(neighbor, jugadores)
+        cost_neighbor = get_cost(neighbor, jugadores)
+        cost_current = get_cost(current_state, jugadores)
+        cost_diff = cost_current - cost_neighbor
 
         # if the new solution is better, accept it
         if cost_diff < 0:
@@ -29,11 +31,12 @@ def simulated_annealing(initial_state, jugadores):
             print("New Best: ", solution)
         # if the new solution is not better, accept it with a probability of e^(-cost/temp)
         else:
+            print(math.exp(-cost_diff / current_temp))
             if random.uniform(0, 1) < math.exp(-cost_diff / current_temp):
                 solution = neighbor
                 print("Worst accepted: ", solution)
         # decrement the temperature
-        current_temp -= alpha
+        current_temp /= (1+(alpha*current_temp))
 
     return solution
 
@@ -50,7 +53,11 @@ def get_cost(state, jugadores):
     if coste <= 60000 and contador[0] == contador[1] == contador[2] == contador[3] and contador[4] == 1:
         return puntos
     else:
-        return -puntos
+        res = -math.log(coste)
+        l = [-1 for x in range(4) if contador[x] != 2]
+        if contador[4] != 1:
+            l.append(-1)
+        return res+sum(l)
     
 def get_neighbors(state, jugadores):
     """Returns neighbors of the argument state for your solution."""
@@ -76,4 +83,4 @@ print("Done", best)
 for j in best:
     print(jugadores[j])
 print('Coste: %i' % (sum([jugadores[j]["precio"] for j in best])))
-print('Puntuacion: %i' % (sum([jugadores[j]["puntos"] for j in best])/len(best)))
+print('Puntuacion: %i' % (get_cost(best, jugadores)))
