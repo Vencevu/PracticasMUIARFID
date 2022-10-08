@@ -32,9 +32,9 @@ def simulated_annealing(initial_state, jugadores):
             print("New Best: ", solution)
         # if the new solution is not better, accept it with a probability of e^(-cost/temp)
         else:
-            print(math.exp(-cost_diff / current_temp))
             if random.uniform(0, 1) < math.exp(-cost_diff / current_temp):
-                solution = neighbor
+                current_state = neighbor
+                solution = current_state
                 print("Worst accepted: ", solution)
         # decrement the temperature
         current_temp /= (1+(alpha*current_temp))
