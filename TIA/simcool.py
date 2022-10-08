@@ -7,7 +7,7 @@ import csv
 
 def simulated_annealing(initial_state, jugadores):
     """Peforms simulated annealing to find a solution"""
-    initial_temp = 1500000
+    initial_temp = 500
     final_temp = .1
     alpha = 0.01
     
