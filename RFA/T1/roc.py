@@ -19,7 +19,7 @@ clf = pickle.load(open(sys.argv[2], 'rb'))
 
 probs = clf.predict_proba(Xdv)[:,1]
 
-fpr, tpr, _ = metrics.roc_curve(xldv,probs,pos_label=1)  
+fpr, tpr, _ = metrics.roc_curve(xldv,probs,pos_label=1) 
 
 plt.plot(fpr,tpr)
 plt.ylabel('True Positive Rate')
