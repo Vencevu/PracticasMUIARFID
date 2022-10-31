@@ -5,7 +5,7 @@ from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 
 if len(sys.argv)!=3:
-  print('Usage: %s <trdata> <devdata>' % sys.argv[0]);
+  print('Usage: %s <trdata> <devdata>' % sys.argv[0])
   sys.exit(1)
 
 tr=np.load(sys.argv[1])['tr']; 
