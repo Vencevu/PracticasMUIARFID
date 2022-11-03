@@ -1,5 +1,6 @@
 import math
 import sys
+from scipy.special import softmax
 import numpy as np
 
 if len(sys.argv)!=2:
@@ -12,4 +13,4 @@ D=L-1
 Xtr=tr[:,1:D]
 xltr=tr[:,-1]
 
-print(Xtr)
+print(softmax(Xtr, axis=1))
