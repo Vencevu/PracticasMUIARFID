@@ -1,21 +1,30 @@
 import math
 import sys
 import numpy as np
-from sklearn import metrics
+from scipy.special import softmax
+from sklearn import metrics, preprocessing
 from sklearn.linear_model import LogisticRegression
 
 if len(sys.argv)!=3:
   print('Usage: %s <trdata> <devdata>' % sys.argv[0])
   sys.exit(1)
 
-tr=np.load(sys.argv[1])['tr']
-dv=np.load(sys.argv[2])['dv']
+tr=np.load(sys.argv[1])['dv']
+dv=np.load(sys.argv[2])['tr']
+
 N,L=tr.shape
 D=L-1
+
 Xtr=tr[:,1:D]
 xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
+
+probFB = np.average(Xtr[:, 9:12], axis=1)
+Xtr = np.c_[np.c_[Xtr[:, 0:9], probFB], Xtr[:, 12:]]
+
+probFB = np.average(Xdv[:, 9:12], axis=1)
+Xdv = np.c_[np.c_[Xdv[:, 0:9], probFB], Xdv[:, 12:]]
 
 clf = LogisticRegression().fit(Xtr, xltr)
 
