@@ -5,12 +5,33 @@ from scipy.special import softmax
 from sklearn import metrics, preprocessing
 from sklearn.linear_model import LogisticRegression
 
+#Softmax + escalado
+def softmaxScale(Xtr, Xdv):
+	XtrS = softmax(Xtr, axis=1)
+	XdvS = softmax(Xdv, axis=1)
+	scaler = preprocessing.StandardScaler().fit(XtrS)
+	Xtr_scaled = scaler.transform(Xtr)
+	scaler = preprocessing.StandardScaler().fit(XdvS)
+	Xdv_scaled = scaler.transform(Xdv)
+
+	return Xtr_scaled, Xdv_scaled
+
+#Reduce las dimensiones de las características haciendo la media desde la componente i hasta la j
+def avgProp(i,j, Xtr, Xdv):
+	probFB = np.average(Xtr[:, i:j], axis=1)
+	resTr = np.c_[np.c_[Xtr[:, 0:i], probFB], Xtr[:, j:]]
+	probFB = np.average(Xdv[:, i:j], axis=1)
+	resDv = np.c_[np.c_[Xdv[:, 0:i], probFB], Xdv[:, j:]]
+
+	return resTr, resDv
+
 if len(sys.argv)!=3:
   print('Usage: %s <trdata> <devdata>' % sys.argv[0])
   sys.exit(1)
 
-tr=np.load(sys.argv[1])['dv']
-dv=np.load(sys.argv[2])['tr']
+#para polimedia las keys dv y tr estan invertidas
+tr=np.load(sys.argv[1])['tr']
+dv=np.load(sys.argv[2])['dv']
 
 N,L=tr.shape
 D=L-1
@@ -20,11 +41,7 @@ xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
 
-probFB = np.average(Xtr[:, 9:12], axis=1)
-Xtr = np.c_[np.c_[Xtr[:, 0:9], probFB], Xtr[:, 12:]]
-
-probFB = np.average(Xdv[:, 9:12], axis=1)
-Xdv = np.c_[np.c_[Xdv[:, 0:9], probFB], Xdv[:, 12:]]
+Xtr, Xdv = avgProp(8, 11, Xtr, Xdv)
 
 clf = LogisticRegression().fit(Xtr, xltr)
 

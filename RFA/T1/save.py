@@ -21,5 +21,5 @@ xltr=np.concatenate((xltr,xldv))
 
 clf = LogisticRegression().fit(Xtr, xltr)
 
-filename = 'model.sav'
+filename = 'models/model.sav'
 pickle.dump(clf, open(filename, 'wb'))
