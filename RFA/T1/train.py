@@ -32,7 +32,6 @@ if len(sys.argv)!=3:
 #para polimedia las keys dv y tr estan invertidas
 tr=np.load(sys.argv[1])['tr']
 dv=np.load(sys.argv[2])['dv']
-
 N,L=tr.shape
 D=L-1
 
