@@ -40,7 +40,7 @@ xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
 
-Xtr, Xdv = avgProp(8, 11, Xtr, Xdv)
+Xtr, Xdv = avgProp(0, 3, Xtr, Xdv)
 
 clf = LogisticRegression().fit(Xtr, xltr)
 
