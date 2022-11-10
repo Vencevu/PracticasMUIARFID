@@ -30,8 +30,8 @@ if len(sys.argv)!=3:
   sys.exit(1)
 
 #para polimedia las keys dv y tr estan invertidas
-tr=np.load(sys.argv[1])['tr']
-dv=np.load(sys.argv[2])['dv']
+tr=np.load(sys.argv[1])['dv']
+dv=np.load(sys.argv[2])['tr']
 N,L=tr.shape
 D=L-1
 
@@ -39,11 +39,11 @@ Xtr=tr[:,1:D]
 xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
-
+print("Procesando datos...")
 Xtr, Xdv = avgProp(0, 3, Xtr, Xdv)
-
+print("Entrenando...")
 clf = LogisticRegression().fit(Xtr, xltr)
-
+print("Validando...")
 probs = clf.predict_proba(Xdv)[:,1]
 auc = metrics.roc_auc_score(xldv,probs)
 print("Dev AUC: %.1f%%" % (auc*100))
