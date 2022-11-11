@@ -4,6 +4,7 @@ import numpy as np
 from scipy.special import softmax
 from sklearn import metrics, preprocessing
 from sklearn.linear_model import LogisticRegression
+from sklearn.decomposition import PCA
 
 #Softmax + escalado
 def softmaxScale(Xtr, Xdv):
@@ -30,8 +31,8 @@ if len(sys.argv)!=3:
   sys.exit(1)
 
 #para polimedia las keys dv y tr estan invertidas
-tr=np.load(sys.argv[1])['dv']
-dv=np.load(sys.argv[2])['tr']
+tr=np.load(sys.argv[1])['tr']
+dv=np.load(sys.argv[2])['dv']
 N,L=tr.shape
 D=L-1
 
@@ -40,7 +41,11 @@ xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
 print("Procesando datos...")
-Xtr, Xdv = avgProp(0, 3, Xtr, Xdv)
+pca = PCA(n_components=15)
+pca.fit(Xtr)
+Xtr = pca.fit_transform(Xtr)
+pca.fit(Xdv)
+Xdv = pca.fit_transform(Xdv)
 print("Entrenando...")
 clf = LogisticRegression().fit(Xtr, xltr)
 print("Validando...")
