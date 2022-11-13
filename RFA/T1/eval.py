@@ -8,7 +8,7 @@ if len(sys.argv)!=3:
   print('Usage: %s <model> <devdata>' % sys.argv[0])
   sys.exit(1)
 
-dv=np.load(sys.argv[2])['tr']
+dv=np.load(sys.argv[2])['dv']
 clf = pickle.load(open(sys.argv[1], 'rb'))
 N,L=dv.shape
 D=L-1

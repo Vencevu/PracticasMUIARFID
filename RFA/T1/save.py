@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from sklearn import metrics, preprocessing
 from sklearn.linear_model import LogisticRegression
 import pickle
 
@@ -18,6 +19,7 @@ Xdv=dv[:,1:D]
 xldv=dv[:,-1]
 Xtr=np.concatenate((Xtr,Xdv))
 xltr=np.concatenate((xltr,xldv))
+Xtr = preprocessing.PowerTransformer().fit_transform(Xtr)
 
 clf = LogisticRegression().fit(Xtr, xltr)
 
