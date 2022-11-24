@@ -173,7 +173,7 @@ def train_and_evaluate(workdir: str) -> train_state.TrainState:
   rng = jax.random.PRNGKey(0)
   state = get_train_state(rng, ctable)
 
-  writer = metric_writers.create_default_writer(workdir)
+  writer = metric_writers.create_default_writer(workdir, collection="MLQ 6")
   for step in range(FLAGS.num_train_steps):
     batch = ctable.get_batch(FLAGS.batch_size)
     state, metrics = train_step(state, batch, rng, ctable.eos_id)
