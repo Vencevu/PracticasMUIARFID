@@ -1,6 +1,7 @@
 import math
 import sys
 import numpy as np
+import pickle
 from scipy.special import softmax
 from sklearn import metrics, preprocessing
 from sklearn.linear_model import LogisticRegression
@@ -31,8 +32,8 @@ if len(sys.argv)!=3:
   sys.exit(1)
 
 #para polimedia las keys dv y tr estan invertidas
-tr=np.load(sys.argv[1])['tr']
-dv=np.load(sys.argv[2])['dv']
+tr=np.load(sys.argv[1])['dv']
+dv=np.load(sys.argv[2])['tr']
 N,L=tr.shape
 D=L-1
 
@@ -41,11 +42,8 @@ xltr=tr[:,-1]
 Xdv=dv[:,1:D]
 xldv=dv[:,-1]
 print("Procesando datos...")
-pca = PCA(n_components=15)
-pca.fit(Xtr)
-Xtr = pca.fit_transform(Xtr)
-pca.fit(Xdv)
-Xdv = pca.fit_transform(Xdv)
+Xtr = preprocessing.PowerTransformer().fit_transform(Xtr)
+Xdv = preprocessing.PowerTransformer().fit_transform(Xdv)
 print("Entrenando...")
 clf = LogisticRegression().fit(Xtr, xltr)
 print("Validando...")
@@ -57,3 +55,6 @@ estimated_xldv = clf.predict(Xdv)
 err = (xldv != estimated_xldv).sum()/Xdv.shape[0]; 
 r=1.96*math.sqrt(err*(1-err)/Xdv.shape[0])
 print("Dev CER: %.2f%% [%.2f, %.2f]" % (err*100,(err-r)*100,(err+r)*100))
+
+filename = 'models/pm_evaldev.sav'
+pickle.dump(clf, open(filename, 'xb'))
