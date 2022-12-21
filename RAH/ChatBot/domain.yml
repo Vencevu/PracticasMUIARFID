@@ -28,23 +28,20 @@ responses:
   utter_greet:
   - text: "Hola"
 
-  utter_cheer_up:
-  - text: "Here is something to cheer you up:"
-
-  utter_did_that_help:
-  - text: "Did that help you?"
+  ask_owner:
+  -text: "Está satisfecho con el pedido?"
 
   utter_happy:
-  - text: "Great, carry on!"
+  - text: "Excelente, algo más?"
+
+  utter_unhappy:
+  - text: "Una pena, quieres ahogarla con alcohol?"
 
   utter_goodbye:
   - text: "Adios"
 
   utter_iamabot:
   - text: "I am a bot, powered by Rasa."
-
-  utter_buy:
-  - text: "{'entity': 'producto'} comprado"
 
 session_config:
   session_expiration_time: 60
