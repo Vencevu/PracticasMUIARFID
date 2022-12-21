@@ -27,7 +27,7 @@ class ActionBuyProduct(Action):
         if not p:
             msg = "Producto no encontrado"
         else:
-            msg = str(p)+" encargado"
+            msg = str(p)+" encargado, algo más?"
 
         dispatcher.utter_message(text=msg)
 

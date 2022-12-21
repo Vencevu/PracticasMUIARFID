@@ -28,11 +28,11 @@ responses:
   utter_greet:
   - text: "Hola"
 
-  ask_owner:
-  -text: "Está satisfecho con el pedido?"
+  utter_ask:
+  - text: "Está satisfecho con el pedido?"
 
   utter_happy:
-  - text: "Excelente, algo más?"
+  - text: "Excelente"
 
   utter_unhappy:
   - text: "Una pena, quieres ahogarla con alcohol?"
