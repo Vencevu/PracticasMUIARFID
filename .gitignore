@@ -3,4 +3,6 @@ TIA/jugadores.csv
 test.py
 data/
 models/
+__pycache__/
+logs/
 .rasa/
