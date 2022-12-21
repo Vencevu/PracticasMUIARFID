@@ -3,3 +3,4 @@ TIA/jugadores.csv
 test.py
 data/
 models/
+.rasa/
