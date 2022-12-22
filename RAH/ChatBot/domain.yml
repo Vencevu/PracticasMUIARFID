@@ -26,7 +26,7 @@ actions:
 
 responses:
   utter_greet:
-  - text: "Hola"
+  - text: "Hola, que desea comprar?"
 
   utter_ask:
   - text: "Está satisfecho con el pedido?"
@@ -38,10 +38,10 @@ responses:
   - text: "Una pena, quieres ahogarla con alcohol?"
 
   utter_goodbye:
-  - text: "Adios"
+  - text: "Muchas gracias por su compra, hasta la próxima."
 
   utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
+  - text: "Beep boop biip soy un robot pendejo con quien crees que hablas con Dios no mames a la berga we."
 
 session_config:
   session_expiration_time: 60
