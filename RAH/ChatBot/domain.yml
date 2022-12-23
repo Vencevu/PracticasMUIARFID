@@ -28,8 +28,11 @@ responses:
   utter_greet:
   - text: "Hola, que desea comprar?"
 
+  utter_ask_more:
+  - text: "Desea algo más?"
+
   utter_ask:
-  - text: "Está satisfecho con el pedido?"
+  - text: "Estás satisfecho con el pedido?"
 
   utter_happy:
   - text: "Excelente"
