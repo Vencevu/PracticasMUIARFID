@@ -30,7 +30,12 @@ class PushAgent(spade.agent.Agent):
 
     class PullBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            k=1
+            k=10
+            random_contacts = random.sample(self.agent.contacts, 1)
+            for jid in random_contacts:
+                body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
+                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ"})
+                await self.send(msg)
 
     # comportamiento encargado de enviar el mensaje push
     class PushBehaviour(spade.behaviour.PeriodicBehaviour):
