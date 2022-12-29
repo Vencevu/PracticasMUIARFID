@@ -12,7 +12,7 @@ class PushAgent(spade.agent.Agent):
     
     async def setup(self):
         self.value = random.randint(1, 1000)
-
+        
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
         self.add_behaviour(self.PullBehaviour(period=2, start_at=start_at))
         template = spade.template.Template(metadata={"performative": "REQ2"})
