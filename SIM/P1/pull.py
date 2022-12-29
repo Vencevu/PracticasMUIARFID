@@ -47,7 +47,7 @@ class PushAgent(spade.agent.Agent):
                 senderID = msg.sender
                 if(body["value"] == 0):
                     body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                    msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PUSH"})
+                    msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PULL"})
                     await self.send(msg)
                 else:
                     self.agent.add_value(body["value"])
