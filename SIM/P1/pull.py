@@ -14,8 +14,8 @@ class PushAgent(spade.agent.Agent):
         self.value = random.randint(1, 1000)
 
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
-        self.add_behaviour(self.PushBehaviour(period=2, start_at=start_at))
-        template = spade.template.Template(metadata={"performative": "PUSH"})
+        self.add_behaviour(self.PullBehaviour(period=2, start_at=start_at))
+        template = spade.template.Template(metadata={"performative": "PULL"})
         self.add_behaviour(self.RecvBehaviour(), template)
 
         print("{} ready.".format(self.name))
@@ -33,36 +33,24 @@ class PushAgent(spade.agent.Agent):
             k=10
             random_contacts = random.sample(self.agent.contacts, 1)
             for jid in random_contacts:
-                body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ"})
+                body = json.dumps({"value": 0, "timestamp": time.time()})
+                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "PULL"})
                 await self.send(msg)
 
-    # comportamiento encargado de enviar el mensaje push
-    class PushBehaviour(spade.behaviour.PeriodicBehaviour):
-
-        async def run(self):
-            # el numero de amigos estÃ¡ fijado a 1, se puede modificar
-            k=1
-            #print("{} period with k={}!".format(self.agent.name, k))
-            random_contacts = random.sample(self.agent.contacts, k)
-            #print("{} sending to {}".format(self.agent.name, [x.localpart for x in random_contacts]))
-            
-            # se envia el mensaje con el dato a los k amigos seleccionados
-            for jid in random_contacts:
-                body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "PUSH"})
-                await self.send(msg)
-
-    # comportamiento encargado de gestionar la llegada de un mensaje push
+    # comportamiento encargado de responder a la peticion REQ
     class RecvBehaviour(spade.behaviour.CyclicBehaviour):
+
         async def run(self):
             msg = await self.receive(timeout=2)
             if msg:
                 body = json.loads(msg.body)
-                # llamamos al mÃ©todo encargado de decidir si actualiza el dato o no
-                self.agent.add_value(body["value"])
-
-                #print("[{}] <{}>".format(self.agent.name, self.agent.value))
+                senderID = msg.sender
+                if(body["value"] == 0):
+                    body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
+                    msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PUSH"})
+                    await self.send(msg)
+                else:
+                    self.agent.add_value(body["value"])
 
 
 @click.command()
