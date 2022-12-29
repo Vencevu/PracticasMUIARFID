@@ -15,8 +15,10 @@ class PushAgent(spade.agent.Agent):
 
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
         self.add_behaviour(self.PullBehaviour(period=2, start_at=start_at))
-        template = spade.template.Template(metadata={"performative": "PULL"})
+        template = spade.template.Template(metadata={"performative": "REQ2"})
         self.add_behaviour(self.RecvBehaviour(), template)
+        template = spade.template.Template(metadata={"performative": "PULL"})
+        self.add_behaviour(self.Recv2Behaviour(), template)
 
         print("{} ready.".format(self.name))
 
@@ -30,11 +32,11 @@ class PushAgent(spade.agent.Agent):
 
     class PullBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            k=10
-            random_contacts = random.sample(self.agent.contacts, 1)
+            k=1
+            random_contacts = random.sample(self.agent.contacts, k)
             for jid in random_contacts:
                 body = json.dumps({"value": 0, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "PULL"})
+                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ2"})
                 await self.send(msg)
 
     # comportamiento encargado de responder a la peticion REQ
@@ -45,12 +47,19 @@ class PushAgent(spade.agent.Agent):
             if msg:
                 body = json.loads(msg.body)
                 senderID = msg.sender
-                if(body["value"] == 0):
-                    body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                    msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PULL"})
-                    await self.send(msg)
-                else:
-                    self.agent.add_value(body["value"])
+                body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
+                msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PULL"})
+                await self.send(msg)
+
+
+    # comportamiento encargado de responder a la peticion REQ
+    class Recv2Behaviour(spade.behaviour.CyclicBehaviour):
+
+        async def run(self):
+            msg = await self.receive(timeout=2)
+            if msg:
+                body = json.loads(msg.body)
+                self.agent.add_value(body["value"])
 
 
 @click.command()
@@ -62,10 +71,10 @@ def main(count):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(PushAgent("alcargra_{}@gtirouter.dsic.upv.es".format(x), "test"))
+        agents.append(PushAgent("alcargra_{}@localhost".format(x), "test"))
 
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
-    time.sleep(3)
+    time.sleep(4)
 
     # se le pasa a cada agente la lista de contactos
     for ag in agents:
