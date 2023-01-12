@@ -35,10 +35,15 @@ class PushAgent(spade.agent.Agent):
     def add_value(self, value):
         # seleccion del valor adecuado entre el propio y el nuevo
         self.tiempo = time.time() - self.tiempo_inicio
+        self.msg_recibidos += 1
         if(self.calc == 'max'):
             self.value = max(self.value, value)
         elif(self.calc == 'avg'):
-            self.value = (self.value + value) / 2
+            self.valuerec = (self.value + value)
+        if self.msg_recibidos == self.k:
+            self.value = self.valuerec / self.k
+            self.valuerec = self.value
+            self.msg_recibidos = 0
 
     def add_contacts(self, contact_list):
         self.contacts = [c.jid for c in contact_list if c.jid != self.jid]
