@@ -16,6 +16,7 @@ class PushAgent(spade.agent.Agent):
 
     async def setup(self):
         self.value = random.randint(1, 1000)
+        self.valuediv = self.value / self.k
         self.tiempo = 0
         self.msg_enviados = 0
         self.tiempo_inicio = time.time()
@@ -35,7 +36,7 @@ class PushAgent(spade.agent.Agent):
         if(self.calc == 'max'):
             self.value = max(self.value, value)
         elif(self.calc == 'avg'):
-            self.value = (self.value + value) / 2
+            self.value = (self.valuediv + value/self.k)
         
 
     def add_contacts(self, contact_list):
