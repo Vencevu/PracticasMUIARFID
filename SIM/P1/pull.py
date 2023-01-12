@@ -127,7 +127,6 @@ def main(count,k,calc):
             elif(calc == 'avg'):
                 minVal = min([ag.value for ag in agents])
                 maxVal = max([ag.value for ag in agents])
-                print(minVal, "|", maxVal)
                 if maxVal-minVal <= 1:
                     print("Gossip done.")
                     break
