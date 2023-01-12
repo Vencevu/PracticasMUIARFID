@@ -21,57 +21,34 @@ class PushAgent(spade.agent.Agent):
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
-        self.add_behaviour(self.PullBehaviour(period=2, start_at=start_at))
-        self.add_behaviour(self.PushBehaviour(period=2, start_at=start_at))
+        self.add_behaviour(self.PushPullBehaviour(period=2, start_at=start_at))
         template = spade.template.Template(metadata={"performative": "REQ2"})
         self.add_behaviour(self.RecvBehaviour(), template)
-        template = spade.template.Template(metadata={"performative": "PULL"})
+        template = spade.template.Template(metadata={"performative": "PUSHPULL"})
         self.add_behaviour(self.Recv2Behaviour(), template)
-        template = spade.template.Template(metadata={"performative": "PUSH"})
-        self.add_behaviour(self.Recv3Behaviour(), template)
 
         print("{} ready.".format(self.name))
 
     def add_value(self, value):
         # seleccion del valor adecuado entre el propio y el nuevo
         self.tiempo = time.time() - self.tiempo_inicio
-        self.msg_recibidos += 1
+        
         if(self.calc == 'max'):
             self.value = max(self.value, value)
         elif(self.calc == 'avg'):
-            self.valuerec = (self.value + value)
-        if self.msg_recibidos == self.k:
-            self.value = self.valuerec / self.k
-            self.valuerec = self.value
-            self.msg_recibidos = 0
+            self.value = (self.value + value) / 2
 
     def add_contacts(self, contact_list):
         self.contacts = [c.jid for c in contact_list if c.jid != self.jid]
         self.length = len(self.contacts)
 
-    class PullBehaviour(spade.behaviour.PeriodicBehaviour):
+    class PushPullBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             k=1
             random_contacts = random.sample(self.agent.contacts, k)
             for jid in random_contacts:
-                body = json.dumps({"value": 0, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ2"})
-                self.agent.msg_enviados += 1
-                await self.send(msg)
-    
-    class PushBehaviour(spade.behaviour.PeriodicBehaviour):
-
-        async def run(self):
-            # el numero de amigos estÃ¡ fijado a 1, se puede modificar
-            k=1
-            #print("{} period with k={}!".format(self.agent.name, k))
-            random_contacts = random.sample(self.agent.contacts, self.agent.k)
-            #print("{} sending to {}".format(self.agent.name, [x.localpart for x in random_contacts]))
-            
-            # se envia el mensaje con el dato a los k amigos seleccionados
-            for jid in random_contacts:
                 body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "PUSH"})
+                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ2"})
                 self.agent.msg_enviados += 1
                 await self.send(msg)
 
@@ -82,23 +59,24 @@ class PushAgent(spade.agent.Agent):
             msg = await self.receive(timeout=2)
             if msg:
                 body = json.loads(msg.body)
+                valorvecino = body["value"]
                 senderID = msg.sender
                 body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PULL"})
-                self.agent.msg_enviados += 1
-                await self.send(msg)
+                if self.agent.calc == 'max':
+                    if self.agent.value > valorvecino:
+                        msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PUSHPULL"})
+                        self.agent.msg_enviados += 1
+                        await self.send(msg)
+                    else:
+                        self.agent.value = valorvecino
+                elif self.agent.calc == 'avg':
+                    msg = spade.message.Message(to=str(senderID), body=body, metadata={"performative": "PUSHPULL"})
+                    self.agent.msg_enviados += 1
+                    await self.send(msg)
 
 
     # comportamiento encargado de responder a la peticion REQ
     class Recv2Behaviour(spade.behaviour.CyclicBehaviour):
-
-        async def run(self):
-            msg = await self.receive(timeout=2)
-            if msg:
-                body = json.loads(msg.body)
-                self.agent.add_value(body["value"])
-
-    class Recv3Behaviour(spade.behaviour.CyclicBehaviour):
 
         async def run(self):
             msg = await self.receive(timeout=2)
@@ -118,7 +96,7 @@ def main(count,k,calc):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(PushAgent("alcargra_{}@gtirouter.dsic.upv.es".format(x), "test", k=k, calc=calc))
+        agents.append(PushAgent("alcargra_{}@localhost".format(x), "test", k=k, calc=calc))
 
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)

@@ -16,9 +16,7 @@ class PushAgent(spade.agent.Agent):
 
     async def setup(self):
         self.value = random.randint(1, 1000)
-        self.valuerec = self.value
         self.tiempo = 0
-        self.msg_recibidos = 0
         self.msg_enviados = 0
         self.tiempo_inicio = time.time()
         
@@ -34,15 +32,11 @@ class PushAgent(spade.agent.Agent):
     def add_value(self, value):
         # seleccion del valor adecuado entre el propio y el nuevo
         self.tiempo = time.time() - self.tiempo_inicio
-        self.msg_recibidos += 1
+        
         if(self.calc == 'max'):
             self.value = max(self.value, value)
         elif(self.calc == 'avg'):
-            self.valuerec = (self.value + value)
-        if self.msg_recibidos == self.k:
-            self.value = self.valuerec / self.k
-            self.valuerec = self.value
-            self.msg_recibidos = 0
+            self.value = (self.value + value) / 2
         
 
     def add_contacts(self, contact_list):
@@ -96,7 +90,7 @@ def main(count,k,calc):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(PushAgent("alcargra_{}@gtirouter.dsic.upv.es".format(x), "test", k=k,calc=calc))
+        agents.append(PushAgent("alcargra_{}@localhost".format(x), "test", k=k,calc=calc))
 
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
@@ -121,7 +115,7 @@ def main(count,k,calc):
             status = [ag.value for ag in agents]
             print("STATUS: {}".format(status))
             if(calc == 'max'):
-                if len(set(status)) <= 0.5:
+                if len(set(status)) == 1:
                     print("Gossip done.")
                     break
             elif(calc == 'avg'):
