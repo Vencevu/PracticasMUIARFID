@@ -96,7 +96,7 @@ def main(count,k,calc):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(PushAgent("alcargra_{}@localhost".format(x), "test", k=k,calc=calc))
+        agents.append(PushAgent("alcargra_{}@gtirouter.dsic.upv.es".format(x), "test", k=k,calc=calc))
 
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
