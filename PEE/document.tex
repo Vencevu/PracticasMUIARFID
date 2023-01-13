@@ -1,0 +1,152 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+
+\author{Alberto Carbonell Granados}
+\begin{document}
+	\title{Ejercicios PEE}
+	\maketitle
+	
+	\newpage
+	\section{Ejercicio 1}
+	\textbf{Clasificación}: En este caso se trata de un problema donde hay que clasificar
+	una determinada muestra en un conjunto finito y normalmente pequeño de
+	clases. El problema se reducir´a por tanto a realizar una exploración exhaustiva
+	con el fin de obtener aquella clase que maximiza la probabilidad de que la
+	muestra pertenezca a dicha clase. Podemos representarlo formalmente como:
+
+	\begin{center}
+		$\underset{c \in C}{\arg\max}\,{P(c \mid x)}$
+	\end{center}
+
+	Donde C es el conjunto reducido de clases disponible y x es la muestra que
+	quiere clasificarse.
+	Algunos ejemplos de una tarea de clasificación podrían ser:
+	\begin{itemize}
+		\item Detección de SPAM o no SPAM en correos electrónicos
+		\item Detección de dígitos manuscritos aislados (MNIST)
+	\end{itemize}
+	\textbf{Predicción estructurada estadística}: La principal diferencia que existe
+	con un problema de clasificación es que el espacio de hipótesis es potencialmente
+	infinito y además el resultado de la muestra a analizar esta estructurada en
+	una secuencia de símbolos, un grafo etc. Además destacar que al tratarse de
+	problemas más complejos es necesario el uso de técnicas búsqueda con un coste
+	computacional más elevado que en los problemas de clasificación. Tal y como
+	se ha comentado podemos formalizarlo con la siguiente ecuación
+	\begin{center}
+		$\underset{c \in C}{\arg\max}\,{P(c \mid x)}$
+	\end{center}
+	Donde a diferencia del problema de clasificación, C es un conjunto generalmente
+	muy grande de clases. Algunas aplicaciones de la predicción estructurada estadística son:
+	\begin{itemize}
+		\item Resumen automático, donde dado un texto de entrada se quiere generar
+		un resumen del mismo.
+		\item Dado un audio generar los subtítulos del mismo.
+	\end{itemize}
+
+	\section{Ejercicio 2}
+	\begin{center}
+		${P(x \mid h) = P(x_{1},...,x_{22} \mid h_{1},...,h_{22}) \approx
+		\prod_{i=1}^{22}P(x_{i} \mid h_{i})}$
+	\end{center}
+	La asunción naive Bayes parece ser adecuada a la hora de estimar los cariotipos
+	debido a que permite evitar estimar una gran cantidad de parámetros y de esta forma reducir el coste computacional del algoritmo. Para ello se considera que
+	la hipótesis de cada cromosoma solo depende de si mismo y no del resto de
+	cromosomas de la secuencia, por lo que la estimación se realizará utilizando
+	modelos más simples.
+	\newpage
+	\section{Ejercicio 3}
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,{P(h \mid x,h',f)}}$
+	\end{center}
+	Podemos reescribirla utilizando la regla conjunta
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,\frac{P(h,x,h',f)}{P(x,h',f)}}$
+	\end{center}
+	Como podemos observar el dividendo no depende del parámetro h que estamos
+	maximizando por lo que resultar´a constante. Por tanto nos quedará la ecuación
+	como:
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,{P(h,x,h',f)}}$
+	\end{center}
+	Utilizando la regla de la cadena y utilizando la función de decodificación d =
+	d(f), la cual nos permite interpretar la función de feedback, podemos obtener
+	la siguiente ecuación
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			{P(d)P(h' \mid d)P(h \mid h', d)P(x \mid h',d,h)}}$
+	\end{center}
+	De nuevo $P(d)$ y $P(h' \mid d)$ no dependen del parámetro que estamos maximizando	(h) y por tanto serán constantes y podremos sacarlos fuera de la ecuación.
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			{P(h \mid h', d)P(x \mid h',d,h)}}$
+	\end{center}
+	Por último, de acuerdo con lo expuesto en las diapositiva, podemos observar que $P(x \mid h',d,h)$ puede considerarse independiente de h’ y d dado h ya que la nueva hipótesis contiene las modificaciones introducidas por la señal de feedback sobre la hipótesis anterior. La ecuación quedará por tanto como:
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			{P(h \mid h',d)P(x \mid h)}}$
+	\end{center}
+	\section{Ejercicio 6}
+	Partiendo de la ecuación
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			{P(h \mid x,h',f)}}$
+	\end{center}
+	Podemos derivar la siguiente ecuación añadiendo la decodificación y marginalizando para todo d
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			\underset{d}{\sum}{P(h,d \mid x,h',f)}}$
+	\end{center}
+	Utilizando la regla conjunta podemos derivar la ecuación
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			\underset{d}{\sum}{\frac{P(h,d \mid x,h',f)}{P(x,h',f)}}}$
+	\end{center}
+	Como podemos observar el denominador no depende del parámetro que estamos
+	maximizando y por tanto podemos sacarlo ya que será constante
+	\begin{center}
+		${\hat{h} = \underset{h \in H}{\arg\max}\,
+			\underset{d}{\sum}{P(h,d, x,h',f)}}$
+	\end{center}
+	Se puede aproximar el sumatorio con la moda por lo que la ecuación quedará
+	como
+	\begin{center}
+		${\hat{h} \approx \underset{h \in H}{\arg\max}\,
+			\underset{d}{\max}\,
+			\underset{d}{\sum}{P(h,d, x,h',f)}}$
+	\end{center}
+	Utilizando la regla de la cadena podemos obtener la siguiente ecuación
+	\begin{center}
+		$\hat{h} \approx \underset{h \in H}{\arg\max}\,
+			\underset{d}{\max}\,
+			P(h')P(d \mid h')P(f \mid h',d)
+				P(h \mid h',d,f)P(x \mid h',d,f,h)$
+	\end{center}
+	Como podemos observar P(h’) no depende de los parámetros que estamos maximizando, por lo que ser´a constante y podremos sacarlo fuera.
+	En $P(f \mid h,d)$ la decodificación depende del usuario al ver la historia pasada por lo que tendrá incluida información de dicha historia.
+	En $P(h \mid h',d,f)$ la decodificación tiene incluida la información del feedback, pudiendo esta señal de feedback eliminarse.
+	Por último en $P(x \mid h,0,d,f,h)$ la nueva hipótesis tiene la información de la historia pasada, la decodificación de la señal de feedback y la señal de feedback. Con todo esto la ecuación queda como:
+	\begin{center}
+		${\hat{h} \approx \underset{h \in H}{\arg\max}\,
+			\underset{d}{\max}\,
+			P(d \mid h')P(f \mid d)
+				P(h \mid h',d)P(x \mid h)}$
+	\end{center}
+	\section{Ejercicio 8}
+	En el protocolo de interacción \textbf{pasivo} el usuario experto decide que muestras
+	necesitan de supervisor. Por lo que el experto deberá de revisar todas las
+	muestras y esto supondrá que el sistema sea perfecto desde su punto de vista.
+	Las hipótesis del sistema se suelen revisar de dos formas distintas:
+	\begin{itemize}
+		\item \textbf{Left-to-right (Izquierda a derecha)} donde se revisan las hipótesis del
+		sistema en un orden determinado.
+		\item \textbf{Desultory (Aleatorio)} en caso de revisarse las hipótesis del sistema de forma aleatoria
+	\end{itemize}
+	Por otra parte el protocolo de interacción \textbf{activo} consiste en ceder la responsabilidad de decisión de que hipótesis deben ser revisadas al sistema. Una de las principales ventajas que supone este protocolo de interacción radica en que el operador humano solo analizará un subconjunto del total de las hipótesis generadas por el sistema. Destacar que la calidad de los resultados dependerá de la calidad del sistema para decidir que muestras necesitan supervisión. Por tanto, el sistema deberá de computar una medida de confianza para cada hipótesis y pedirle al usuario que evalúe aquellas muestras para las que el sistema tiene una menor confianza.
+	
+	
+\end{document}
