@@ -30,7 +30,6 @@ class AgenteCliente(spade.agent.Agent):
     async def setup(self):
         self.value = random.randint(1, 1000)
         self.tiempo = 0
-        self.msg_enviados = 0
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
@@ -46,7 +45,6 @@ class AgenteCliente(spade.agent.Agent):
             jid = self.contact
             body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
             msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
-            self.agent.msg_enviados += 1
             await self.send(msg)
 
 def main(count,k):
