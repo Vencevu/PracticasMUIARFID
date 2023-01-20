@@ -11,7 +11,15 @@ class AgenteMediador(spade.agent.Agent):
         super().__init__(jid, password)
 
     async def setup(self):
+
+        template = spade.template.Template(metadata={"performative": "MAKE_BET"})
+        self.add_behaviour(self.RecepcionBehaviour(), template)
+
         print("{} ready.".format(self.name))
+    
+    class RecepcionBehaviour(spade.behaviour.PeriodicBehaviour):
+        async def run(self):
+            pass
 
 class AgenteCliente(spade.agent.Agent):
 
@@ -26,24 +34,20 @@ class AgenteCliente(spade.agent.Agent):
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
-        self.add_behaviour(self.PullBehaviour(period=2, start_at=start_at))
-        template = spade.template.Template(metadata={"performative": "REQ2"})
-        self.add_behaviour(self.RecvBehaviour(), template)
+        self.add_behaviour(self.EnvioBehaviour(period=2, start_at=start_at))
 
         print("{} ready.".format(self.name))
     
     def add_contact(self, contact):
-        self.contacts = contact
+        self.contact = contact
 
-    class PullBehaviour(spade.behaviour.PeriodicBehaviour):
+    class EnvioBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            k=1
-            random_contacts = random.sample(self.agent.contacts, self.agent.k)
-            for jid in random_contacts:
-                body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "REQ2"})
-                self.agent.msg_enviados += 1
-                await self.send(msg)
+            jid = self.contact
+            body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
+            msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
+            self.agent.msg_enviados += 1
+            await self.send(msg)
 
 def main(count,k):
     agents = []
