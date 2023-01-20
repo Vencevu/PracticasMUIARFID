@@ -62,9 +62,8 @@ def main(count,k):
 
     # se le pasa a cada agente la lista de contactos
     for ag in agents:
-        ag.add_contact(agents)
+        ag.add_contact(agenteMediador)
         ag.value = 0
-        ag.msg_enviados = 0
 
     # se lanzan todos los agentes
     for ag in agents:
