@@ -66,9 +66,10 @@ def main(count,k):
         ag.value = 0
 
     # se lanzan todos los agentes
+    agenteMediador.start()
     for ag in agents:
         ag.start()
-
+        
     # este tiempo trata de esperar que todos los agentes estan ready, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
     
