@@ -5,6 +5,14 @@ import random
 import time
 import click
 
+class AgenteMediador(spade.agent.Agent):
+
+    def __init__(self, jid, password):
+        super().__init__(jid, password)
+
+    async def setup(self):
+        print("{} ready.".format(self.name))
+
 class AgenteCliente(spade.agent.Agent):
 
     def __init__(self, jid, password, k = 1):
@@ -23,6 +31,9 @@ class AgenteCliente(spade.agent.Agent):
         self.add_behaviour(self.RecvBehaviour(), template)
 
         print("{} ready.".format(self.name))
+    
+    def add_contact(self, contact):
+        self.contacts = contact
 
     class PullBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
@@ -42,13 +53,14 @@ def main(count,k):
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
         agents.append(AgenteCliente("alcargra_{}@localhost".format(x), "test", k=k))
-
+    
+    agenteMediador = AgenteMediador("alcargra_mediador@localhost", "1234")
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
 
     # se le pasa a cada agente la lista de contactos
     for ag in agents:
-        ag.add_contacts(agents)
+        ag.add_contact(agents)
         ag.value = 0
         ag.msg_enviados = 0
 
