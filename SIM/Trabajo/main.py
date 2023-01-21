@@ -11,7 +11,7 @@ class AgenteMediador(spade.agent.Agent):
         super().__init__(jid, password)
 
     async def setup(self):
-
+        self.value = 0
         template = spade.template.Template(metadata={"performative": "MAKE_BET"})
         self.add_behaviour(self.RecepcionBehaviour(), template)
 
@@ -19,7 +19,7 @@ class AgenteMediador(spade.agent.Agent):
     
     class RecepcionBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            pass
+            self.value = 1
 
 class AgenteCliente(spade.agent.Agent):
 
@@ -54,9 +54,9 @@ def main(count,k):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(AgenteCliente("alcargra_{}@localhost".format(x), "test", k=k))
+        agents.append(AgenteCliente("apostador_{}@localhost".format(x), "test", k=k))
     
-    agenteMediador = AgenteMediador("alcargra_mediador@localhost", "1234")
+    agenteMediador = AgenteMediador("mediador@localhost", "1234")
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
 
@@ -77,9 +77,9 @@ def main(count,k):
     while True:
         try:
             time.sleep(1)
-            status = [ag.value for ag in agents]
+            status = agenteMediador.value
             print("STATUS: {}".format(status))
-            if len(set(status)) == 1:
+            if status == 1:
                 print("Gossip done.")
                 break
         except KeyboardInterrupt:
