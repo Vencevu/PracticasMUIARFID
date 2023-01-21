@@ -17,15 +17,18 @@ class AgenteMediador(spade.agent.Agent):
 
         print("{} ready.".format(self.name))
     
-    class RecepcionBehaviour(spade.behaviour.PeriodicBehaviour):
+    class RecepcionBehaviour(spade.behaviour.CyclicBehaviour):
         async def run(self):
-            self.value = 1
+            msg = await self.receive(timeout=2)
+            if msg:
+                print("Mensaje recibido")
+                body = json.loads(msg.body)
+                self.agent.value += 1
 
 class AgenteCliente(spade.agent.Agent):
 
-    def __init__(self, jid, password, k = 1):
+    def __init__(self, jid, password):
         super().__init__(jid, password)
-        self.k = k
 
     async def setup(self):
         self.value = random.randint(1, 1000)
@@ -38,23 +41,26 @@ class AgenteCliente(spade.agent.Agent):
         print("{} ready.".format(self.name))
     
     def add_contact(self, contact):
-        self.contact = contact
+        self.contact = contact.jid
 
     class EnvioBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            jid = self.contact
+            jid = self.agent.contact
             body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
             msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
             await self.send(msg)
+            print("Mensaje enviado por ", self.agent.jid)
 
-def main(count,k):
+@click.command()
+@click.option('--count', default=10, help='Number of agents.')
+def main(count):
     agents = []
     print("Creating {} agents...".format(count))
     for x in range(1, count + 1):
         print("Creating agent {}...".format(x))
         # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
         # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(AgenteCliente("apostador_{}@localhost".format(x), "test", k=k))
+        agents.append(AgenteCliente("apostador_{}@localhost".format(x), "test"))
     
     agenteMediador = AgenteMediador("mediador@localhost", "1234")
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
@@ -79,7 +85,7 @@ def main(count,k):
             time.sleep(1)
             status = agenteMediador.value
             print("STATUS: {}".format(status))
-            if status == 1:
+            if status == len(agents):
                 print("Gossip done.")
                 break
         except KeyboardInterrupt:
