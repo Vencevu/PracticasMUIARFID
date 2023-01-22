@@ -13,6 +13,8 @@ class AgenteTarea(spade.agent.Agent):
     async def setup(self):
         self.asignado = ""
         self.puja = 0
+        self.precio = random.randint(5,20)
+
         template = spade.template.Template(metadata={"performative": "MAKE_BET"})
         self.add_behaviour(self.RecepcionBehaviour(), template)
 
@@ -22,7 +24,6 @@ class AgenteTarea(spade.agent.Agent):
         async def run(self):
             msg = await self.receive(timeout=2)
             if msg:
-                print("Mensaje recibido")
                 body = json.loads(msg.body)
                 if body["puja"] > self.agent.puja:
                     self.agent.puja = body["puja"]
