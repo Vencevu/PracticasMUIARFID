@@ -26,8 +26,9 @@ class AgenteTarea(spade.agent.Agent):
             if msg:
                 body = json.loads(msg.body)
                 if body["puja"] > self.agent.puja:
-                    self.agent.puja = body["puja"]
+                    self.agent.puja = int(body["puja"])
                     self.agent.asignado = msg.sender
+                    self.precio += int(body["puja"])
 
 class AgenteCliente(spade.agent.Agent):
 
@@ -37,6 +38,7 @@ class AgenteCliente(spade.agent.Agent):
     async def setup(self):
         self.value = random.randint(1, 1000)
         self.msg_enviados = 0
+        self.costes = {}
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
@@ -50,6 +52,7 @@ class AgenteCliente(spade.agent.Agent):
     class PujaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             for jid in self.agent.contacts:
+                puja = self.agent.costes[jid]
                 body = json.dumps({"puja": self.agent.value, "timestamp": time.time()})
                 msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
                 await self.send(msg)
