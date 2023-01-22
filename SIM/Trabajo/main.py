@@ -5,6 +5,8 @@ import random
 import time
 import click
 
+random.seed(42)
+
 class AgenteTarea(spade.agent.Agent):
 
     def __init__(self, jid, password):
@@ -36,9 +38,9 @@ class AgenteCliente(spade.agent.Agent):
         super().__init__(jid, password)
 
     async def setup(self):
-        self.value = random.randint(1, 1000)
         self.msg_enviados = 0
         self.costes = {}
+        self.precios = {}
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
@@ -51,10 +53,10 @@ class AgenteCliente(spade.agent.Agent):
 
     class PujaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            for jid in self.agent.contacts:
-                puja = self.agent.costes[jid]
-                body = json.dumps({"puja": self.agent.value, "timestamp": time.time()})
-                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
+            for tarea in self.agent.contacts:
+                puja = self.agent.costes[self.agent.jid[tarea]] + self.precios[tarea]
+                body = json.dumps({"puja": puja, "timestamp": time.time()})
+                msg = spade.message.Message(to=str(tarea), body=body, metadata={"performative": "MAKE_BET"})
                 await self.send(msg)
 
 @click.command()
@@ -72,10 +74,16 @@ def main(count):
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
 
+    #Creamos tablas de coste y precios
+    costes = {k.jid: {t.jid: random.randint(1,10) for t in agentsT} for k in agentsC}
+
     # se le pasa a cada agente la lista de contactos
+    for ag in agentsT:
+        ag.start()
+    
     for ag in agentsC:
         ag.add_contact(agentsT)
-        ag.value = 0
+        ag.costes = costes
 
     for ag in agentsC:
         ag.start()
@@ -91,7 +99,8 @@ def main(count):
         try:
             time.sleep(1)
             status = [a.asignado for a in agentsT if a.asignado == ""]
-            print("STATUS: {}".format(status))
+            costeTotal = [a.precio for a in agentsT if a.asignado != ""]
+            print("COSTE TOTAL: {}".format(sum(costeTotal)))
             if len(status) == 0:
                 print("FIN")
                 break
