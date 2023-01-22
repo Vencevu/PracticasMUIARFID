@@ -5,13 +5,14 @@ import random
 import time
 import click
 
-class AgenteMediador(spade.agent.Agent):
+class AgenteTarea(spade.agent.Agent):
 
     def __init__(self, jid, password):
         super().__init__(jid, password)
 
     async def setup(self):
-        self.value = 0
+        self.asignado = ""
+        self.puja = 0
         template = spade.template.Template(metadata={"performative": "MAKE_BET"})
         self.add_behaviour(self.RecepcionBehaviour(), template)
 
@@ -23,7 +24,9 @@ class AgenteMediador(spade.agent.Agent):
             if msg:
                 print("Mensaje recibido")
                 body = json.loads(msg.body)
-                self.agent.value += 1
+                if body["puja"] > self.agent.puja:
+                    self.agent.puja = body["puja"]
+                    self.agent.asignado = msg.sender
 
 class AgenteCliente(spade.agent.Agent):
 
@@ -32,48 +35,48 @@ class AgenteCliente(spade.agent.Agent):
 
     async def setup(self):
         self.value = random.randint(1, 1000)
-        self.tiempo = 0
+        self.msg_enviados = 0
         self.tiempo_inicio = time.time()
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
-        self.add_behaviour(self.EnvioBehaviour(period=2, start_at=start_at))
+        self.add_behaviour(self.PujaBehav(period=2, start_at=start_at))
 
         print("{} ready.".format(self.name))
     
-    def add_contact(self, contact):
-        self.contact = contact.jid
+    def add_contact(self, contact_list):
+        self.contacts = [c.jid for c in contact_list]
 
-    class EnvioBehaviour(spade.behaviour.PeriodicBehaviour):
+    class PujaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            jid = self.agent.contact
-            body = json.dumps({"value": self.agent.value, "timestamp": time.time()})
-            msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
-            await self.send(msg)
-            print("Mensaje enviado por ", self.agent.jid)
+            for jid in self.agent.contacts:
+                body = json.dumps({"puja": self.agent.value, "timestamp": time.time()})
+                msg = spade.message.Message(to=str(jid), body=body, metadata={"performative": "MAKE_BET"})
+                await self.send(msg)
 
 @click.command()
 @click.option('--count', default=10, help='Number of agents.')
 def main(count):
-    agents = []
+    agentsC, agentsT = [], []
     print("Creating {} agents...".format(count))
     for x in range(1, count + 1):
         print("Creating agent {}...".format(x))
-        # nos guardamos la lista de agentes para poder visualizar el estado del proceso gossiping
-        # el servidor estÃ¡ fijado a gtirouter.dsic.upv.es, si se tiene un serviodor XMPP en local, se puede sustituir por localhost
-        agents.append(AgenteCliente("apostador_{}@localhost".format(x), "test"))
+        agentsC.append(AgenteCliente("pujador_{}@localhost".format(x), "test"))
     
-    agenteMediador = AgenteMediador("mediador@localhost", "1234")
+    for x in range(1, count + 1):
+        print("Creating agent {}...".format(x))
+        agentsT.append(AgenteTarea("tarea_{}@localhost".format(x), "test"))
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
     time.sleep(count*0.3)
 
     # se le pasa a cada agente la lista de contactos
-    for ag in agents:
-        ag.add_contact(agenteMediador)
+    for ag in agentsC:
+        ag.add_contact(agentsT)
         ag.value = 0
 
-    # se lanzan todos los agentes
-    agenteMediador.start()
-    for ag in agents:
+    for ag in agentsC:
+        ag.start()
+
+    for ag in agentsT:
         ag.start()
         
     # este tiempo trata de esperar que todos los agentes estan ready, depende de la cantidad de agentes que se lancen
@@ -83,19 +86,16 @@ def main(count):
     while True:
         try:
             time.sleep(1)
-            status = agenteMediador.value
+            status = [a.asignado for a in agentsT if a.asignado == ""]
             print("STATUS: {}".format(status))
-            if status == len(agents):
-                print("Gossip done.")
+            if len(status) == 0:
+                print("FIN")
                 break
         except KeyboardInterrupt:
             break
 
-    total_mensajes = sum([ag.msg_enviados for ag in agents])
-    total_tiempo = max([ag.tiempo for ag in agents])
-    print("tiempo: ", total_tiempo, " mensajes: ",total_mensajes)
     # se para a todos los agentes
-    for ag in agents:
+    for ag in agentsC:
         ag.stop()
     print("Agents finished")
 
