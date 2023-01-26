@@ -34,22 +34,21 @@ class AgenteTarea(spade.agent.Agent):
                     self.agent.asignado = msg.sender
                     self.agent.precio += body["puja"]
 
-                    body = json.dumps({"asignacion": 1, "precio": self.agent.precio, "timestamp": time.time()})
+                    body = json.dumps({"asignacion": 1, "timestamp": time.time()})
                     msg2 = spade.message.Message(to=str(msg.sender), body=body, metadata={"performative": "ACCEPT_BET"})
                     await self.send(msg2)
 
                     if self.agent.asignadoprev != "":
-                        body = json.dumps({"asignacion": 0, "precio": self.agent.precio, "timestamp": time.time()})
+                        body = json.dumps({"asignacion": 0, "timestamp": time.time()})
                         msg3 = spade.message.Message(to=str(self.agent.asignadoprev), body=body, metadata={"performative": "DENY_BET"})
                         await self.send(msg3)
                     
                     self.agent.asignadoprev = msg.sender
 
                     for pujador in self.agent.contacts:
-                        if not(pujador == msg.sender or pujador == self.agent.asignadoprev):
-                            body = json.dumps({"precio": self.agent.precio, "timestamp": time.time()})
-                            msg = spade.message.Message(to=str(pujador), body=body, metadata={"performative": "UPDATE_PRICE"})
-                            await self.send(msg)
+                        body = json.dumps({"precio": self.agent.precio, "timestamp": time.time()})
+                        msg = spade.message.Message(to=str(pujador), body=body, metadata={"performative": "UPDATE_PRICE"})
+                        await self.send(msg)
 
 
 class AgenteCliente(spade.agent.Agent):
@@ -91,6 +90,8 @@ class AgenteCliente(spade.agent.Agent):
                 msg = spade.message.Message(to=str(puja_id), body=body, metadata={"performative": "MAKE_BET"})
                 await self.send(msg)
 
+                print("Puja de ", self.agent.name, " a ", puja_id, " con valor ", puja_value)
+
     class RespuestaBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             if(self.agent.tarea_asignada == ""):
@@ -98,7 +99,6 @@ class AgenteCliente(spade.agent.Agent):
                 if msg:
                     body = json.loads(msg.body)
                     if(body["asignacion"] == 1): self.agent.tarea_asignada = msg.sender
-                    self.agent.precios[msg.sender] = body["precio"]
     
     class UpdateBehaviour(spade.behaviour.PeriodicBehaviour):
         async def run(self):
@@ -113,7 +113,6 @@ class AgenteCliente(spade.agent.Agent):
             if msg:
                 body = json.loads(msg.body)
                 if(body["asignacion"] == 0): self.agent.tarea_asignada = ""
-                self.agent.precios[msg.sender] = body["precio"]
 
 @click.command()
 @click.option('--count', default=10, help='Number of agents.')
@@ -131,8 +130,8 @@ def main(count):
     time.sleep(count*3*0.3)
 
     #Creamos tablas de coste y precios
-    costes = {k.jid: {t.jid: round(random.uniform(1.0,20.9), 2) for t in agentsT} for k in agentsC}
-    precios = {k.jid: round(random.uniform(1.0,20.9), 2) for k in agentsT}
+    costes = {k.jid: {t.jid: round(random.randint(1,20) + random.uniform(0.1,0.5), 2) for t in agentsT} for k in agentsC}
+    precios = {k.jid: round(random.randint(1,20) + random.uniform(0.1,0.5), 2) for k in agentsT}
 
     # se le pasa a cada agente la lista de contactos, costes y precios
     for ag in agentsT:
@@ -143,6 +142,7 @@ def main(count):
         ag.add_contact(agentsT)
         ag.costes = costes
         ag.precios = precios
+        ag.tarea_asignada = ""
     print("Iniciando pujadores...")
     for agc in agentsC:
         agc.start()
@@ -165,7 +165,7 @@ def main(count):
             print("COSTE TOTAL: {}".format(sum(costeTotal)))
             print("TAREAS SIN ASIGNAR: {}".format(status))
             print("PUJADORES SIN ASIGNAR: {}".format(statusP))
-            print("ESTADO: ", precios)
+            #print("ESTADO: ", precios)
             if len(status) == 0 or len(statusP) == 0:
                 print("FIN")
                 break
