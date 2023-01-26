@@ -30,9 +30,9 @@ class AgenteTarea(spade.agent.Agent):
                 body = json.loads(msg.body)
                 if body["puja"] > self.agent.puja:
 
-                    self.agent.puja = int(body["puja"])
+                    self.agent.puja = body["puja"]
                     self.agent.asignado = msg.sender
-                    self.agent.precio += int(body["puja"])
+                    self.agent.precio += body["puja"]
 
                     body = json.dumps({"asignacion": 1, "precio": self.agent.precio, "timestamp": time.time()})
                     msg2 = spade.message.Message(to=str(msg.sender), body=body, metadata={"performative": "ACCEPT_BET"})
