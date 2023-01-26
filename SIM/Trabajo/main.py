@@ -111,7 +111,7 @@ def main(count):
         print("Creating agent Pujador {}...".format(x))
         agentsC.append(AgenteCliente("pujador_{}@localhost".format(x), "test"))
     
-    for x in range(1, count + 1):
+    for x in range(1, count + 10):
         print("Creating agent Tarea {}...".format(x))
         agentsT.append(AgenteTarea("tarea_{}@localhost".format(x), "test"))
     # este tiempo trata de esperar que todos los agentes estan registrados, depende de la cantidad de agentes que se lancen
