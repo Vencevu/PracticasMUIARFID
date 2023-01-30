@@ -12,15 +12,16 @@ data:
         path_src: ../Corpus/dev.en
         path_tgt: ../Corpus/dev.es
 # Model
-decoder_type: transformer
-encoder_type: transformer
+decoder_type: rnn
+encoder_type: rnn
 word_vec_size: 256
+rnn_type: LSTM
 rnn_size: 256
 layers: 6
-transformer_ff: 1024
-heads: 8
-accum_count: 8
-warmup_steps: 8000
+# transformer_ff: 1024
+# heads: 8
+# accum_count: 8
+# warmup_steps: 8000
 optim: adam
 adam_beta1: 0.9
 adam_beta2: 0.998
