@@ -14,10 +14,11 @@ data:
 # Model
 decoder_type: rnn
 encoder_type: rnn
-word_vec_size: 256
-rnn_type: LSTM
-rnn_size: 256
-layers: 6
+word_vec_size: 512
+rnn_type: GRU
+rnn_size: 512
+hidden_size: 512
+layers: 4
 # transformer_ff: 1024
 # heads: 8
 # accum_count: 8
