@@ -12,17 +12,15 @@ data:
         path_src: ../Corpus/dev.en
         path_tgt: ../Corpus/dev.es
 # Model
-decoder_type: rnn
-encoder_type: rnn
+decoder_type: transformer
+encoder_type: transformer
 word_vec_size: 512
-rnn_type: GRU
 rnn_size: 512
-hidden_size: 512
-layers: 4
-# transformer_ff: 1024
-# heads: 8
-# accum_count: 8
-# warmup_steps: 8000
+layers: 2
+transformer_ff: 256
+heads: 4
+accum_count: 8
+warmup_steps: 8000
 optim: adam
 adam_beta1: 0.9
 adam_beta2: 0.998
@@ -32,7 +30,7 @@ max_grad_norm: 0.0
 batch_size: 128
 batch_type: tokens
 normalization: tokens
-dropout: 0.2
+dropout: 0.1
 label_smoothing: 0.1
 max_generator_batches: 2
 param_init: 0.0
@@ -47,7 +45,7 @@ gpu_ranks:
 # Checkpoints
 save_model: models/model
 save_checkpoint_steps: 1000
-train_steps: 15000
+train_steps: 33000
 valid_steps: 500
 keep_checkpoint: 10
 report_every: 100
