@@ -71,16 +71,16 @@ class AgenteCliente(spade.agent.Agent):
         self.add_behaviour(self.PujaBehav(period=2, start_at=start_at))
 
         template = spade.template.Template(metadata={"performative": "ACCEPT_BET"})
-        self.add_behaviour(self.RespuestaBehaviour(period=1, start_at=start_at), template)
+        self.add_behaviour(self.RespuestaBehav(period=1, start_at=start_at), template)
 
         template = spade.template.Template(metadata={"performative": "UPDATE_PRICE"})
-        self.add_behaviour(self.UpdateBehaviour(period=1, start_at=start_at), template)
+        self.add_behaviour(self.UpdateBehav(period=1, start_at=start_at), template)
 
         template = spade.template.Template(metadata={"performative": "REPLACE_BET"})
-        self.add_behaviour(self.ReplaceBehaviour(period=1, start_at=start_at), template)
+        self.add_behaviour(self.ReplaceBehav(period=1, start_at=start_at), template)
 
         template = spade.template.Template(metadata={"performative": "DENY_BET"})
-        self.add_behaviour(self.DenyBehaviour(period=1, start_at=start_at), template)
+        self.add_behaviour(self.DenyBehav(period=1, start_at=start_at), template)
 
         print("{} ready.".format(self.name))
     
@@ -109,7 +109,7 @@ class AgenteCliente(spade.agent.Agent):
 
                 print("Puja de ", self.agent.name, " a ", puja_id, " con valor ", puja_value, "(",puja1, "-",puja2 ,")")
 
-    class RespuestaBehaviour(spade.behaviour.PeriodicBehaviour):
+    class RespuestaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             if(self.agent.tarea_asignada == ""):
                 msg = await self.receive(timeout=2)
@@ -119,21 +119,21 @@ class AgenteCliente(spade.agent.Agent):
                         self.agent.tarea_asignada = msg.sender
                         self.agent.tarea_obj = 0
     
-    class UpdateBehaviour(spade.behaviour.PeriodicBehaviour):
+    class UpdateBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             msg = await self.receive(timeout=2)
             if msg:
                 body = json.loads(msg.body)
                 self.agent.precios[msg.sender] = body["precio"]
     
-    class ReplaceBehaviour(spade.behaviour.PeriodicBehaviour):
+    class ReplaceBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             msg = await self.receive(timeout=2)
             if msg:
                 body = json.loads(msg.body)
                 if(body["asignacion"] == 0): self.agent.tarea_asignada = ""
 
-    class DenyBehaviour(spade.behaviour.PeriodicBehaviour):
+    class DenyBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
             self.agent.tarea_obj = 0
 
