@@ -1,6 +1,6 @@
 save_data: data/
-src_vocab: data/es.vocab
-tgt_vocab: data/en.vocab
+src_vocab: data/en.vocab
+tgt_vocab: data/es.vocab
 overwrite: False
 
 # Corpora:
@@ -45,7 +45,7 @@ gpu_ranks:
 # Checkpoints
 save_model: models/model
 save_checkpoint_steps: 1000
-train_steps: 15000
+train_steps: 33000
 valid_steps: 500
 keep_checkpoint: 10
 report_every: 100
