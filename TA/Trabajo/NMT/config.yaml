@@ -17,7 +17,7 @@ encoder_type: rnn
 word_vec_size: 512
 rnn_size: 512
 hidden_size: 64
-rnn_type: GRU
+rnn_type: SRU
 layers: 3
 # transformer_ff: 256
 # heads: 4
