@@ -13,11 +13,14 @@ class AgenteTarea(spade.agent.Agent):
         self.asignado = ""
         self.asignadoprev = ""
         self.puja = 0
+        self.msg_enviados = 0
+        self.tiempo = 0
 
         template = spade.template.Template(metadata={"performative": "MAKE_BET"})
         self.add_behaviour(self.RecepcionBehaviour(), template)
 
         print("{} ready.".format(self.name))
+        self.tiempo_inicio = time.time()
     
     def add_contact(self, contact_list):
         self.contacts = [c.jid for c in contact_list]
@@ -36,11 +39,13 @@ class AgenteTarea(spade.agent.Agent):
                     body = json.dumps({"asignacion": 1, "timestamp": time.time()})
                     msg2 = spade.message.Message(to=str(msg.sender), body=body, metadata={"performative": "ACCEPT_BET"})
                     await self.send(msg2)
+                    self.agent.msg_enviados += 1
 
                     if self.agent.asignadoprev != "":
                         body = json.dumps({"asignacion": 0, "timestamp": time.time()})
                         msg3 = spade.message.Message(to=str(self.agent.asignadoprev), body=body, metadata={"performative": "REPLACE_BET"})
                         await self.send(msg3)
+                        self.agent.msg_enviados += 1
 
                         # print("Tarea ", self.agent.name, " reemplazada")
                     
@@ -50,13 +55,17 @@ class AgenteTarea(spade.agent.Agent):
                         body = json.dumps({"precio": self.agent.precio, "timestamp": time.time()})
                         msg4 = spade.message.Message(to=str(pujador), body=body, metadata={"performative": "UPDATE_PRICE"})
                         await self.send(msg4)
+                        self.agent.msg_enviados += 1
 
                         # print("Actualizacion de precio de ",self.agent.name ," a", pujador, " con valor ", self.agent.precio)
                 else:
                     body2 = json.dumps({"deny": 1, "timestamp": time.time()})
                     msg = spade.message.Message(to=str(msg.sender), body=body2, metadata={"performative": "DENY_BET"})
                     await self.send(msg)
+                    self.agent.msg_enviados += 1
                     print("Puja de ",body["puja"] ,"denegada por ", self.agent.name, ". Puja minima: ", self.agent.puja)
+                
+                self.agent.tiempo = time.time() - self.agent.tiempo_inicio
 
 
 class AgenteCliente(spade.agent.Agent):
@@ -65,7 +74,7 @@ class AgenteCliente(spade.agent.Agent):
         self.msg_enviados = 0
         self.tarea_obj = 0
         self.tarea_asignada = ""
-        self.tiempo_inicio = time.time()
+        self.tiempo = 0
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
         self.add_behaviour(self.PujaBehav(period=2, start_at=start_at))
@@ -83,11 +92,13 @@ class AgenteCliente(spade.agent.Agent):
         self.add_behaviour(self.DenyBehav(period=1, start_at=start_at), template)
 
         print("{} ready.".format(self.name))
-    
+        self.tiempo_inicio = time.time()
+
     def add_contact(self, contact_list):
         self.contacts = [c.jid for c in contact_list]
 
     def calc_coste(self, id):
+        self.tiempo = time.time() - self.tiempo_inicio
         return self.costes[self.jid][id] + self.precios[id]
 
     class PujaBehav(spade.behaviour.PeriodicBehaviour):
@@ -106,6 +117,7 @@ class AgenteCliente(spade.agent.Agent):
                 body = json.dumps({"puja": puja_value, "timestamp": time.time()})
                 msg = spade.message.Message(to=str(puja_id), body=body, metadata={"performative": "MAKE_BET"})
                 await self.send(msg)
+                self.agent.msg_enviados += 1
 
                 print("Puja de ", self.agent.name, " a ", puja_id, " con valor ", puja_value, "(",puja1, "-",puja2 ,")")
 
@@ -135,7 +147,7 @@ class AgenteCliente(spade.agent.Agent):
 
     class DenyBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            self.agent.tarea_obj = 0
+            self.agent.tarea_obj += 1
 
 @click.command()
 @click.option('--count', default=10, help='Number of agents.')
@@ -195,6 +207,10 @@ def main(count):
             print([a.precio for a in agentsT])
             if len(status) == 0 or len(statusP) == 0:
                 print("FIN")
+                num_msg = sum([a.msg_enviados for a in agentsT]) + sum([a.msg_enviados for a in agentsC])
+                total_tiempo = max([ag.tiempo for ag in agentsC]+[ag.tiempo for ag in agentsT])
+                print("MENSAJES ENVIADOS: ", num_msg)
+                print("TIEMPO: ", total_tiempo)
                 break
         except KeyboardInterrupt:
             break
