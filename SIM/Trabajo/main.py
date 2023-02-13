@@ -37,7 +37,7 @@ class AgenteTarea(spade.agent.Agent):
                 self.agent.tiempo = time.time() - self.agent.tiempo_inicio
             if self.agent.ronda and len(self.agent.pujas_recibidas) > 0:
                 print(self.agent.pujas_recibidas)
-                mejor_pujador = min(self.agent.pujas_recibidas, key=self.agent.pujas_recibidas.get)
+                mejor_pujador = max(self.agent.pujas_recibidas, key=self.agent.pujas_recibidas.get)
                 self.agent.puja = self.agent.pujas_recibidas[mejor_pujador]
                 self.agent.precio += self.agent.puja
                 self.agent.asignado = mejor_pujador
@@ -111,7 +111,7 @@ class AgenteCliente(spade.agent.Agent):
 
     class PujaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            if(self.agent.tarea_asignada == "" and self.agent.puja_enable == True):
+            if self.agent.puja_enable:
                 pujas = {k: self.agent.calc_coste(k) for k in self.agent.contacts}
                 pujas = dict(sorted(pujas.items(), key=lambda item: item[1]))
 
@@ -159,7 +159,7 @@ class AgenteCliente(spade.agent.Agent):
         async def run(self):
             msg = await self.receive(timeout=2)
             if msg:
-                self.agent.tarea_obj += 1
+                # self.agent.tarea_obj = 1
                 self.agent.puja_enable = True
 
 @click.command()
@@ -227,8 +227,10 @@ def main(count):
             relaciones = {a.name: a.tarea_asignada for a in agentsC}
             print("COSTE TOTAL: {}".format(sum(costeTotal)))
             print([a.precio for a in agentsT])
+            print([1 if a.puja_enable else 0 for a in agentsC])
             print([1 if a.asignado != '' else 0 for a in agentsT])
             if len([a for a in agentsC if a.puja_enable]) == 0:
+                print("Ronda de pujas terminada")
                 for aT in agentsT:
                     aT.ronda = 1
             if len(status) == 0 or len(statusP) == 0:
