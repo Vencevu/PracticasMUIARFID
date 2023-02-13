@@ -15,6 +15,8 @@ class AgenteTarea(spade.agent.Agent):
         self.puja = 0
         self.msg_enviados = 0
         self.tiempo = 0
+        self.pujas_recibidas = {}
+        self.ronda = 0
 
         template = spade.template.Template(metadata={"performative": "MAKE_BET"})
         self.add_behaviour(self.RecepcionBehaviour(), template)
@@ -30,41 +32,46 @@ class AgenteTarea(spade.agent.Agent):
             msg = await self.receive(timeout=2)
             if msg:
                 body = json.loads(msg.body)
-                if body["puja"] > self.agent.puja or self.agent.puja == 0:
+                self.agent.pujas_recibidas[msg.sender] = body["puja"]
+                print("Pujas a ", self.agent.name, ": ", len(self.agent.pujas_recibidas))
+                self.agent.tiempo = time.time() - self.agent.tiempo_inicio
+            if self.agent.ronda and len(self.agent.pujas_recibidas) > 0:
+                print(self.agent.pujas_recibidas)
+                mejor_pujador = min(self.agent.pujas_recibidas, key=self.agent.pujas_recibidas.get)
+                self.agent.puja = self.agent.pujas_recibidas[mejor_pujador]
+                self.agent.precio += self.agent.puja
+                self.agent.asignado = mejor_pujador
+                # print("Puja aceptada por ", self.agent.name)
+                body = json.dumps({"asignacion": 1, "timestamp": time.time()})
+                msg2 = spade.message.Message(to=str(mejor_pujador), body=body, metadata={"performative": "ACCEPT_BET"})
+                await self.send(msg2)
+                self.agent.msg_enviados += 1
 
-                    self.agent.puja = body["puja"]
-                    self.agent.asignado = msg.sender
-                    self.agent.precio += body["puja"]
-                    # print("Puja aceptada por ", self.agent.name)
-                    body = json.dumps({"asignacion": 1, "timestamp": time.time()})
-                    msg2 = spade.message.Message(to=str(msg.sender), body=body, metadata={"performative": "ACCEPT_BET"})
-                    await self.send(msg2)
+                if self.agent.asignadoprev != "":
+                    body = json.dumps({"asignacion": 0, "timestamp": time.time()})
+                    msg3 = spade.message.Message(to=str(self.agent.asignadoprev), body=body, metadata={"performative": "REPLACE_BET"})
+                    await self.send(msg3)
                     self.agent.msg_enviados += 1
 
-                    if self.agent.asignadoprev != "":
-                        body = json.dumps({"asignacion": 0, "timestamp": time.time()})
-                        msg3 = spade.message.Message(to=str(self.agent.asignadoprev), body=body, metadata={"performative": "REPLACE_BET"})
-                        await self.send(msg3)
-                        self.agent.msg_enviados += 1
-
-                        # print("Tarea ", self.agent.name, " reemplazada")
-                    
-                    self.agent.asignadoprev = msg.sender
-
-                    for pujador in self.agent.contacts:
-                        body = json.dumps({"precio": self.agent.precio, "timestamp": time.time()})
-                        msg4 = spade.message.Message(to=str(pujador), body=body, metadata={"performative": "UPDATE_PRICE"})
-                        await self.send(msg4)
-                        self.agent.msg_enviados += 1
-
-                        # print("Actualizacion de precio de ",self.agent.name ," a", pujador, " con valor ", self.agent.precio)
-                else:
-                    body2 = json.dumps({"deny": 1, "timestamp": time.time()})
-                    msg = spade.message.Message(to=str(msg.sender), body=body2, metadata={"performative": "DENY_BET"})
-                    await self.send(msg)
-                    self.agent.msg_enviados += 1
-                    print("Puja de ",body["puja"] ,"denegada por ", self.agent.name, ". Puja minima: ", self.agent.puja)
+                    # print("Tarea ", self.agent.name, " reemplazada")
                 
+                self.agent.asignadoprev = mejor_pujador
+
+                for pujador in self.agent.contacts:
+                    body = json.dumps({"precio": self.agent.precio, "timestamp": time.time()})
+                    msg4 = spade.message.Message(to=str(pujador), body=body, metadata={"performative": "UPDATE_PRICE"})
+                    await self.send(msg4)
+                    self.agent.msg_enviados += 1
+
+                    if pujador != mejor_pujador:
+                        body2 = json.dumps({"deny": 1, "timestamp": time.time()})
+                        msg = spade.message.Message(to=str(pujador), body=body2, metadata={"performative": "DENY_BET"})
+                        await self.send(msg)
+                        self.agent.msg_enviados += 1
+                        # print("Puja de ",body["puja"] ,"denegada por ", self.agent.name, ". Puja minima: ", self.agent.puja)
+
+                self.agent.pujas_recibidas = {}
+                self.agent.ronda = 0
                 self.agent.tiempo = time.time() - self.agent.tiempo_inicio
 
 
@@ -75,6 +82,7 @@ class AgenteCliente(spade.agent.Agent):
         self.tarea_obj = 0
         self.tarea_asignada = ""
         self.tiempo = 0
+        self.puja_enable = True
         
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
         self.add_behaviour(self.PujaBehav(period=2, start_at=start_at))
@@ -103,7 +111,7 @@ class AgenteCliente(spade.agent.Agent):
 
     class PujaBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            if(self.agent.tarea_asignada == ""):
+            if(self.agent.tarea_asignada == "" and self.agent.puja_enable == True):
                 pujas = {k: self.agent.calc_coste(k) for k in self.agent.contacts}
                 pujas = dict(sorted(pujas.items(), key=lambda item: item[1]))
 
@@ -118,7 +126,8 @@ class AgenteCliente(spade.agent.Agent):
                 msg = spade.message.Message(to=str(puja_id), body=body, metadata={"performative": "MAKE_BET"})
                 await self.send(msg)
                 self.agent.msg_enviados += 1
-
+                self.agent.puja_enable = False
+                
                 print("Puja de ", self.agent.name, " a ", puja_id, " con valor ", puja_value, "(",puja1, "-",puja2 ,")")
 
     class RespuestaBehav(spade.behaviour.PeriodicBehaviour):
@@ -144,10 +153,14 @@ class AgenteCliente(spade.agent.Agent):
             if msg:
                 body = json.loads(msg.body)
                 if(body["asignacion"] == 0): self.agent.tarea_asignada = ""
+                self.agent.puja_enable = True
 
     class DenyBehav(spade.behaviour.PeriodicBehaviour):
         async def run(self):
-            self.agent.tarea_obj += 1
+            msg = await self.receive(timeout=2)
+            if msg:
+                self.agent.tarea_obj += 1
+                self.agent.puja_enable = True
 
 @click.command()
 @click.option('--count', default=10, help='Number of agents.')
@@ -189,6 +202,20 @@ def main(count):
         
     # este tiempo trata de esperar que todos los agentes estan ready, depende de la cantidad de agentes que se lancen
     time.sleep(count*3*0.3)
+
+    def minMax(arr):
+        min_value = 0
+        max_value = 0
+        n=len(arr)
+        
+        arr.sort()
+        j=n-3
+        for i in range(n-1):
+            min_value += arr[i]
+            max_value += arr[j]
+            j-=1
+
+        print(min_value)
     
     # este bucle imprime los valores que almacena cada agente y termina cuando todos tienen el mismo valor (consenso)
     while True:
@@ -196,21 +223,21 @@ def main(count):
             time.sleep(1)
             status = [a.name for a in agentsT if a.asignado == ""]
             statusP = [a.name for a in agentsC if a.tarea_asignada == ""]
-            costeTotal = [a.precio for a in agentsT if a.asignado != ""]
+            costeTotal = [a.precio for a in agentsT if a.asignado != '']
             relaciones = {a.name: a.tarea_asignada for a in agentsC}
-            # print("Precios ", agentsC[0].name, list(agentsC[0].precios.values()))
             print("COSTE TOTAL: {}".format(sum(costeTotal)))
-            # print("TAREAS SIN ASIGNAR: {}".format(status))
-            # print("PUJADORES SIN ASIGNAR: {}".format(statusP))
-            #print("ESTADO: ", precios)
-            print(list(costes[agentsC[1].jid].values()))
             print([a.precio for a in agentsT])
+            print([1 if a.asignado != '' else 0 for a in agentsT])
+            if len([a for a in agentsC if a.puja_enable]) == 0:
+                for aT in agentsT:
+                    aT.ronda = 1
             if len(status) == 0 or len(statusP) == 0:
                 print("FIN")
                 num_msg = sum([a.msg_enviados for a in agentsT]) + sum([a.msg_enviados for a in agentsC])
                 total_tiempo = max([ag.tiempo for ag in agentsC]+[ag.tiempo for ag in agentsT])
                 print("MENSAJES ENVIADOS: ", num_msg)
                 print("TIEMPO: ", total_tiempo)
+                minMax([a.precio for a in agentsT])
                 break
         except KeyboardInterrupt:
             break
