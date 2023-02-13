@@ -115,9 +115,6 @@ class AgenteCliente(spade.agent.Agent):
                 pujas = {k: self.agent.calc_coste(k) for k in self.agent.contacts}
                 pujas = dict(sorted(pujas.items(), key=lambda item: item[1]))
 
-                # print("Pujas de ", self.agent.name, "=>", pujas)
-                # print("Mejor tarea de ", self.agent.name, "=>", list(pujas.keys())[self.agent.tarea_obj])
-
                 puja1, puja2 = list(pujas.values())[self.agent.tarea_obj], list(pujas.values())[self.agent.tarea_obj+1]
                 puja_value = puja2 - puja1 + 0.001
  
