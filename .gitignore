@@ -9,3 +9,4 @@ logs/
 llncs2e/
 OpenNMT-py/
 Corpus/
+scores*
