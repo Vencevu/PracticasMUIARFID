@@ -41,7 +41,7 @@ def procesarDatos():
     x_test = []
     y_test = []
     Nc = []
-    for ruta, directorios, archivos in os.walk("./ORLProcessed/Train/"):
+    for ruta, directorios, archivos in os.walk("../data/IDENTIFICATION/ORLProcessed/Train/"):
         Nc.append(len(archivos))
         for archivo in archivos:
             etiq = int(ruta[-3:].split('s')[1])
