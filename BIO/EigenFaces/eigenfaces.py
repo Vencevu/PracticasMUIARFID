@@ -49,7 +49,7 @@ def procesarDatos():
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_training.append(imagen[0])
-    for ruta, directorios, archivos in os.walk("./ORLProcessed/Test/"):
+    for ruta, directorios, archivos in os.walk("../data/IDENTIFICATION/ORLProcessed/Test/"):
         for archivo in archivos:
             etiq = int(ruta[-3:].split('s')[1])
             y_test.append(etiq)
