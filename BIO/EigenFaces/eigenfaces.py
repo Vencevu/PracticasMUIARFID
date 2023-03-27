@@ -41,7 +41,7 @@ def procesarDatos():
     x_test = []
     y_test = []
     Nc = []
-    for ruta, directorios, archivos in os.walk("../data/IDENTIFICATION/ORLProcessed/Train/"):
+    for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Train/", topdown=False):
         Nc.append(len(archivos))
         for archivo in archivos:
             etiq = int(ruta[-3:].split('s')[1])
@@ -49,17 +49,18 @@ def procesarDatos():
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_training.append(imagen[0])
-    for ruta, directorios, archivos in os.walk("../data/IDENTIFICATION/ORLProcessed/Test/"):
+    for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Test/", topdown=False):
         for archivo in archivos:
             etiq = int(ruta[-3:].split('s')[1])
             y_test.append(etiq)
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_test.append(imagen[0])
-    x_training = np.matrix(x_training, dtype=np.float64).T
+    x_training = np.asarray(x_training, dtype=np.float64).T
     y_training = np.asarray(y_training)
-    x_test = np.matrix(x_test, dtype=np.float64).T
+    x_test = np.asarray(x_test, dtype=np.float64).T
     y_test = np.asarray(y_test)
+    
     Nc.pop(0)
     return x_training, y_training, x_test, y_test, Nc
 
@@ -71,23 +72,25 @@ def PCA(x_training, x_test, d_):
     n = x_training.shape[1]
     
     #Calculamos el vector promedio (cara promedio)
-    mu = np.mean(x_training, axis=1)
+    mu = np.mean(x_training, axis=1, keepdims=True)
 
     #Calculamos la matriz A donde almacenamos la diferencia de cada vector con el promedio 
     A = np.zeros((d, n), dtype=np.float64)
-    A = np.matrix(A)
+    A = np.asarray(A)
     for i in range(n):
-        A[:,i] = x_training[:, i] - mu[:]
+        A[:,i] = x_training[:, i] - mu[:,0]
 
     #Calculamos los eigevalues y los eigenvectores de la matriz de covarianzas de las muestras.
     #Para ello seguimos las consideraciones prácticas de las transparencias, en las que
     #primero se calcula un C_ de nxn junto con sus eigenvalues y eigenvectores.
-    C_ = np.matrix(A.T) * np.matrix(A)
+    # C_ = np.asarray(A.T) * np.asarray(A)
+    C_ = np.dot(A.T, A)
     C_ /= d
 
     delta_, B_ = LA.eig(C_)
 
-    B = np.matrix(A) * np.matrix(B_)
+    # B = np.asarray(A) * np.asarray(B_)
+    B = np.dot(A, B_)
     delta = (d/n) * delta_
 
     #Ordenamos los eigenvectores y eigenvalues; y normalizamos estos últimos
@@ -101,8 +104,8 @@ def PCA(x_training, x_test, d_):
     #Aplicamos la reducción con los d_ primeros eigenvectores
     Bd = B[:,:d_]
     Bdt = Bd.T
-    x_training_red = Bdt * (x_training - mu)
-    x_test_red = Bdt * (x_test - mu)
+    x_training_red = np.dot(Bdt, (x_training - mu))
+    x_test_red = np.dot(Bdt, (x_test - mu))
 
     return x_training_red, x_test_red
 
