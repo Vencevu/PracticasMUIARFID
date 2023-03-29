@@ -37,3 +37,14 @@ for film in films_df["title"].tolist():
     year = years[0] if len(years) > 0 else 0
     film = re.sub(r'\(\d{4}\)', '', film)
     films.append((film, year))
+
+user_login = input("Usuario: ")
+user_pass = input("Contraseña: ")
+
+def user_log(user, password):
+    res = False
+    user_id = int(user.replace("user", ""))
+    if user_id in users_df["user_id"].tolist():
+        if password == "inicio"+str(user_id):
+            res = True
+    return res
