@@ -44,8 +44,10 @@ ratings = ratings.merge(users_df, on="user_id")
 for film in films_df["title"].tolist():
     years = re.findall(r'(\d{4})', film)
     year = years[0] if len(years) > 0 else 0
-    film = re.sub(r'\(\d{4}\)', '', film)
-    films.append((film, year))
+    film_title = re.sub(r'\(\d{4}\)', '', film)
+    movie = tmdb.Search().movie(query=film_title, year=year)["results"]
+    if len(movie) > 0:
+        films.append((film_title, movie[0]["id"], movie[0]["vote_average"]))
 
 user_login = input("Usuario: ")
 user_pass = input("Contraseña: ")
