@@ -15,6 +15,15 @@ tmdb.REQUESTS_SESSION = requests.Session()
 tmdb.API_KEY = '1e11e7d4c5f3aad6e459fc0f63bfb0f5'
 tmdb.REQUESTS_TIMEOUT = 5
 
+#Funciones
+def user_log(user, password):
+    res = False
+    user_id = int(user.replace("user", ""))
+    if user_id in users_df["user_id"].tolist():
+        if password == "inicio"+str(user_id):
+            res = True
+    return res
+
 # Generos
 generos = pd.read_csv("../data/genre.txt", names=["genre_id", "genre_name"], sep="\t")
 # Usuarios
@@ -40,11 +49,7 @@ for film in films_df["title"].tolist():
 
 user_login = input("Usuario: ")
 user_pass = input("Contraseña: ")
-
-def user_log(user, password):
-    res = False
-    user_id = int(user.replace("user", ""))
-    if user_id in users_df["user_id"].tolist():
-        if password == "inicio"+str(user_id):
-            res = True
-    return res
+if user_log(user_login, user_pass):
+    print("Inicio de sesion correcta")
+else:
+    print("Error")
