@@ -7,19 +7,26 @@ specialDatePattern = re.compile(
 )
 acroPattern = re.compile("EE\.UU\.|S\.L\.|CC\.OO\.|S\.A\.|U\.R\.S\.S\.|D\.|Dª\.|Sr\.|Sra\.|Dr\.|Dra\.", re.I | re.U)
 namePattern = re.compile("((Á|É|Í|Ó|Ú|[A-Z])\w+\s+(Á|É|Í|Ó|Ú|[A-Z])\w+\s+(Á|É|Í|Ó|Ú|[A-Z])\w+)", re.UNICODE)
+linkPattern = re.compile("http[s]?://[w{3}.]?\S*")
+
 pattern = re.compile(
-    r"\b\S+\b|[(),\'\"?¿!¡:;%]|\.+|^\d*[.,]?\d*|\S+@\S+|\d{1,2}:\d{2}[h]?|http[s]?://[w{3}.]?\S*|\d{1,2}(?:|-)\d{2}(?:|-)\d{2,4}|@\S+|#\S+|[\u263a-\U0001f919]", re.I | re.U)
+    r"[A-Za-z]+\s*|[(),\'\"?¿!¡:;%]|\.+|^\d*[.,]?\d*|\S+@\S+|\d{1,2}:\d{2}|http[s]?://[w{3}.]?\S*|\d{1,2}(?:|-)\d{2}(?:|-)\d{2,4}|@\S+|#\S+|[\u263a-\U0001f919]|\d+%", re.I | re.U)
 
 
 def tokenizarDocumento(listOfSentences):
     result = ""
     for sentence in listOfSentences:
-        result += "%s\n" % sentence
+        result += "%s" % sentence
 
         names = namePattern.findall(sentence)
         names = [n[0] for n in names]
         print("NAMES: ", names)
         sentenceClean = re.sub(namePattern, "NAME ", sentence)
+
+        links = linkPattern.findall(sentenceClean)
+        links = [d for d in links]
+        print("LINKS: ", links)
+        sentenceClean = re.sub(linkPattern, "LINK ", sentenceClean)
 
         dates = specialDatePattern.findall(sentenceClean)
         dates = [d[0] for d in dates]
@@ -31,15 +38,19 @@ def tokenizarDocumento(listOfSentences):
         sentenceClean = re.sub(acroPattern, "ACRO ", sentenceClean)
         for token in pattern.findall(sentenceClean):
             print("TOKEN :",token)
-            if token == "ACRO":
+            if token.strip() == "ACRO":
                 acro = acros.pop(0)
                 result += "%s \n" % acro
                 print("ACRO: ",acro)
-            elif token == "DATE":
+            elif token.strip() == "LINK":
+                link = links.pop(0)
+                result += "%s \n" % link
+                print("LINK: ",link)
+            elif token.strip() == "DATE":
                 date = dates.pop(0)
                 result += "%s \n" % date
                 print("DATE: ",date)
-            elif token == "NAME":
+            elif token.strip() == "NAME":
                 name = names.pop(0)
                 result += "%s \n" % name
                 print("NAME: ",name)
