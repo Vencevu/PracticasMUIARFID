@@ -6,8 +6,7 @@ from numpy import linalg as LA
 import matplotlib.pyplot as plt   
 from sklearn.neighbors import KNeighborsClassifier
 
-##El primer argumento del script es el parámetro k del algoritmo de 
-##k-vecinos más cercanos.
+##Parámetro k del algoritmo de k-vecinos más cercanos.
 v = int(sys.argv[1])
 
 ##Método obtenido de StackOverflow para procesar imágenes y almacenarlas en 
@@ -44,15 +43,15 @@ def procesarDatos():
     for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Train/", topdown=False):
         Nc.append(len(archivos))
         for archivo in archivos:
-            etiq = int(ruta[-3:].split('s')[1])
-            y_training.append(etiq)
+            etiqueta = int(ruta[-3:].split('s')[1])
+            y_training.append(etiqueta)
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_training.append(imagen[0])
     for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Test/", topdown=False):
         for archivo in archivos:
-            etiq = int(ruta[-3:].split('s')[1])
-            y_test.append(etiq)
+            etiqueta = int(ruta[-3:].split('s')[1])
+            y_test.append(etiqueta)
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_test.append(imagen[0])
