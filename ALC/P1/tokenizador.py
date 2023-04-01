@@ -63,9 +63,11 @@ def tokenizarDocumento(listOfSentences):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tokenizador de español')
-    parser.add_argument("--i", dest="inputFile", type=str)
-    parser.add_argument("--o", dest="outputFile", type=str)
+    parser.add_argument("--i", dest="inputFile", type=str, help='Archivo de entrada')
+    parser.add_argument("--o", dest="outputFile", type=str, help='Archivo de salida')
     args = parser.parse_args()
+    if args.inputFile is None or args.outputFile is None:
+        parser.error("Argumentos incorrectos.")
     inputSentences = open(args.inputFile, "r", encoding="utf-8").readlines()
     result = tokenizarDocumento(inputSentences)
     with open(args.outputFile, "w", encoding="utf-8") as f:
