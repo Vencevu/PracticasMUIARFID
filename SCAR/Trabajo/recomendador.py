@@ -13,12 +13,14 @@ from collections import defaultdict, Counter
 from itertools import islice
 import collections
 
-tmdb.REQUESTS_SESSION = requests.Session()
-tmdb.API_KEY = '1e11e7d4c5f3aad6e459fc0f63bfb0f5'
-tmdb.REQUESTS_TIMEOUT = 5
+
 
 class Recomendador():
     def __init__(self, data_path) -> None:
+        tmdb.REQUESTS_SESSION = requests.Session()
+        tmdb.API_KEY = '1e11e7d4c5f3aad6e459fc0f63bfb0f5'
+        tmdb.REQUESTS_TIMEOUT = 5
+
         self.preferencias = []
         self.pref_hyb = []
         self.pref_dg = []
