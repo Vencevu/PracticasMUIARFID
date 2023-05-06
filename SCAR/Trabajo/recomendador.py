@@ -25,13 +25,13 @@ class Recomendador():
         self.pref_hyb = []
         self.pref_dg = []
         self.grupos_demograficos = {}
-        self.users_df = pd.read_csv(data_path, names=["user_id", "age", "gender", "occupation"], sep="\t")
-        self.ratings = pd.read_csv("data/u1_base.txt", names=["user_id", "movie_id", "rating"], sep="\t")
-        self.generos = pd.read_csv("data/genre.txt", names=["genre_id", "genre_name"], sep="\t")
-
+        
+        self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation"], sep="\t")
+        self.ratings = pd.read_csv(data_path+"/u1_base.txt", names=["user_id", "movie_id", "rating"], sep="\t")
+        self.generos = pd.read_csv(data_path+"/genre.txt", names=["genre_id", "genre_name"], sep="\t")
         all_genre = self.generos.genre_name.values.tolist()
         all_genre = ["movie_id"] + all_genre + ["title"]
-        self.films_df = pd.read_csv("data/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
+        self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
 
     def take(n, iterable):
         res = {}
