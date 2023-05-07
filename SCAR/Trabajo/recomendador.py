@@ -68,7 +68,11 @@ class Recomendador():
         self.preferencias = np.load(path)['a'] if path != "" else self.get_pref()
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
         self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
-            
+        
+    def save_preferencias(self, path="."):
+        np.savez_compressed(path+"/preferencias", a=self.preferencias)
+        np.savez_compressed(path+"/preferencias_demografico", a=self.pref_dg)
+        np.savez_compressed(path+"/preferencias_hibrido", a=self.pref_hyb)
 
     def movie_votes_demographic(self, grupos, movie_id, grupo):
         usuarios = [k for k, v in grupos.items() if v == grupo]
