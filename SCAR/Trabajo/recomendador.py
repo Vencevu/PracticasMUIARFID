@@ -26,8 +26,14 @@ class Recomendador():
     
     def register_user(self, age, gender, occupation):
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
-        return len(self.users_df.index)
     
+    def log_in(self, user, passwd):
+        user = self.users_df[self.users_df.user_id == user]['user_id'].tolist()
+        if len(user) == 0:
+            return False
+        self.user = user[0]
+        return True
+
     def rate_film(self, film, score):
         self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
 
