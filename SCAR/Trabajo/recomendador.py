@@ -29,10 +29,11 @@ class Recomendador():
     
     def log_in(self, user, passwd):
         user = self.users_df[self.users_df.user_id == user]['user_id'].tolist()
-        if len(user) == 0:
-            return False
-        self.user = user[0]
-        return True
+        if len(user) > 0 and passwd == "inicio"+user[0]:
+            self.user = user[0]
+            return True
+        
+        return False
 
     def rate_film(self, film, score):
         self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
