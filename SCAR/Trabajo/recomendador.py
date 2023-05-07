@@ -21,8 +21,9 @@ class Recomendador():
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
     
-    def add_user(self, age, gender, occupation):
+    def register_user(self, age, gender, occupation):
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
+        return len(self.users_df.index)
 
     def get_hyb_pref(self):
         pref_hyb = []
