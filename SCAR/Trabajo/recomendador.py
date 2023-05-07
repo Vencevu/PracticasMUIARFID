@@ -24,6 +24,9 @@ class Recomendador():
     def register_user(self, age, gender, occupation):
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
         return len(self.users_df.index)
+    
+    def rate_film(self, score):
+        self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), ]
 
     def get_hyb_pref(self):
         pref_hyb = []
