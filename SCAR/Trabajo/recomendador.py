@@ -13,6 +13,9 @@ class Recomendador():
         self.pref_hyb = []
         self.pref_dg = []
         self.grupos_demograficos = {}
+
+        #Usuario que inicia sesion
+        self.user = -1
         
         self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation"], sep="\t")
         self.ratings = pd.read_csv(data_path+"/u1_base.txt", names=["user_id", "movie_id", "rating"], sep="\t")
@@ -25,8 +28,8 @@ class Recomendador():
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
         return len(self.users_df.index)
     
-    def rate_film(self, score):
-        self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), ]
+    def rate_film(self, film, score):
+        self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
 
     def get_hyb_pref(self):
         pref_hyb = []
