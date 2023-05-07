@@ -1,19 +1,7 @@
-import random
-import re
-from os import sep
-
 import numpy as np
 import pandas as pd
 import requests
 import tmdbsimple as tmdb
-from scipy.stats import pearsonr
-from surprise import SVD, Dataset, KNNBasic, Reader
-from surprise.model_selection import cross_validate
-from collections import defaultdict, Counter
-from itertools import islice
-import collections
-
-
 
 class Recomendador():
     def __init__(self, data_path) -> None:
@@ -95,7 +83,7 @@ class Recomendador():
         return sum(scores)/len(scores) if scores != [] else 0
 
     def get_genres_score(self, users):
-        
+
         def take(n, iterable):
             res = {}
             i = 0
