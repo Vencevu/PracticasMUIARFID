@@ -32,17 +32,6 @@ class Recomendador():
         all_genre = self.generos.genre_name.values.tolist()
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
-
-    def take(n, iterable):
-        res = {}
-        i = 0
-        for k, v in iterable.items():
-            if i >= n:
-                break
-            res[k] = v
-            i += 1
-            
-        return res
     
     def get_hyb_pref(self):
         pref_hyb = []
@@ -106,6 +95,18 @@ class Recomendador():
         return sum(scores)/len(scores) if scores != [] else 0
 
     def get_genres_score(self, users):
+        
+        def take(n, iterable):
+            res = {}
+            i = 0
+            for k, v in iterable.items():
+                if i >= n:
+                    break
+                res[k] = v
+                i += 1
+                
+            return res
+    
         best_genres = {}
         for u in users:
             for i in self.generos['genre_name'].tolist():
@@ -117,7 +118,7 @@ class Recomendador():
                         best_genres[i] += puntos/len(users)
 
         best_genres = {k: v for k, v in sorted(best_genres.items(), key=lambda item: item[1])}
-        best_genres = self.take(6, best_genres)
+        best_genres = take(6, best_genres)
 
         pref = []
 
