@@ -90,10 +90,67 @@ class Recomendador():
         pref_hyb = np.matrix(pref_hyb)
 
     def load_grupos_demograficos(self) -> None:
+
+        def get_user_type(self, gender, age, occupation):
+            res = 0
+            group1 = ['doctor', 'healthcare', 'entertainment']
+            group2 = ['engineer', 'programmer', 'scientist', 'technician']
+            group3 = ['artist', 'writer', 'librarian', 'homemaker']
+            group4 = ['none', 'other', 'student', 'retired']
+            group5 = ['executive', 'lawyer', 'administrator', 'salesman', 'marketing']
+
+            if occupation in group1:
+                if age < 23:
+                    res = 1 if gender == 'M' else 2
+                elif 24 < age < 40:
+                    res = 3 if gender == 'M' else 4
+                elif 41 < age < 60:
+                    res = 5 if gender == 'M' else 6
+                else:
+                    res = 7 if gender == 'M' else 8
+            elif occupation in group2:
+                if age < 23:
+                    res = 9 if gender == 'M' else 9
+                elif 24 < age < 40:
+                    res = 11 if gender == 'M' else 12
+                elif 41 < age < 60:
+                    res = 13 if gender == 'M' else 14
+                else:
+                    res = 15 if gender == 'M' else 16
+            elif occupation in group3:
+                if age < 23:
+                    res = 17 if gender == 'M' else 18
+                elif 24 < age < 40:
+                    res = 19 if gender == 'M' else 20
+                elif 41 < age < 60:
+                    res = 21 if gender == 'M' else 22
+                else:
+                    res = 23 if gender == 'M' else 24
+            elif occupation in group4:
+                if age < 23:
+                    res = 25 if gender == 'M' else 26
+                elif 24 < age < 40:
+                    res = 27 if gender == 'M' else 28
+                elif 41 < age < 60:
+                    res = 29 if gender == 'M' else 30
+                else:
+                    res = 31 if gender == 'M' else 32
+            elif occupation in group5:
+                if age < 23:
+                    res = 33 if gender == 'M' else 34
+                elif 24 < age < 40:
+                    res = 35 if gender == 'M' else 36
+                elif 41 < age < 60:
+                    res = 37 if gender == 'M' else 38
+                else:
+                    res = 39 if gender == 'M' else 40
+
+            return res - 1 if res > 9 else res
+
         self.grupos_demograficos = {}
         for user_id in self.users_df.user_id.unique().tolist():
             user = self.users_df[self.users_df.user_id == user_id]
-            user_demo_group = self.get_user_type(user.gender.tolist()[0], user.age.tolist()[0], user.occupation.tolist()[0])
+            user_demo_group = get_user_type(user.gender.tolist()[0], user.age.tolist()[0], user.occupation.tolist()[0])
             self.grupos_demograficos[user_id] = user_demo_group
 
     def get_pref(self):
@@ -217,59 +274,3 @@ class Recomendador():
             res.append(scores)
 
         return np.matrix(res)
-
-    def get_user_type(self, gender, age, occupation):
-        res = 0
-        group1 = ['doctor', 'healthcare', 'entertainment']
-        group2 = ['engineer', 'programmer', 'scientist', 'technician']
-        group3 = ['artist', 'writer', 'librarian', 'homemaker']
-        group4 = ['none', 'other', 'student', 'retired']
-        group5 = ['executive', 'lawyer', 'administrator', 'salesman', 'marketing']
-
-        if occupation in group1:
-            if age < 23:
-                res = 1 if gender == 'M' else 2
-            elif 24 < age < 40:
-                res = 3 if gender == 'M' else 4
-            elif 41 < age < 60:
-                res = 5 if gender == 'M' else 6
-            else:
-                res = 7 if gender == 'M' else 8
-        elif occupation in group2:
-            if age < 23:
-                res = 9 if gender == 'M' else 9
-            elif 24 < age < 40:
-                res = 11 if gender == 'M' else 12
-            elif 41 < age < 60:
-                res = 13 if gender == 'M' else 14
-            else:
-                res = 15 if gender == 'M' else 16
-        elif occupation in group3:
-            if age < 23:
-                res = 17 if gender == 'M' else 18
-            elif 24 < age < 40:
-                res = 19 if gender == 'M' else 20
-            elif 41 < age < 60:
-                res = 21 if gender == 'M' else 22
-            else:
-                res = 23 if gender == 'M' else 24
-        elif occupation in group4:
-            if age < 23:
-                res = 25 if gender == 'M' else 26
-            elif 24 < age < 40:
-                res = 27 if gender == 'M' else 28
-            elif 41 < age < 60:
-                res = 29 if gender == 'M' else 30
-            else:
-                res = 31 if gender == 'M' else 32
-        elif occupation in group5:
-            if age < 23:
-                res = 33 if gender == 'M' else 34
-            elif 24 < age < 40:
-                res = 35 if gender == 'M' else 36
-            elif 41 < age < 60:
-                res = 37 if gender == 'M' else 38
-            else:
-                res = 39 if gender == 'M' else 40
-
-        return res - 1 if res > 9 else res
