@@ -30,7 +30,7 @@ class Recomendador():
 
     Methods
     -------
-    register_user(age, gender, occupation) -> None
+    register_user(age, gender : str, occupation : str) -> None
         Da de alta a un usuario
 
     log_in(self, user, passwd) -> bool
@@ -42,8 +42,11 @@ class Recomendador():
     rate_film(film, score) -> None
         Puntua una película por un usuario agregando el registro a films_df
     
-    obtener_recomendacion(user) -> list
+    obtener_recomendacion(user : int) -> list
         Devuelve una lista de 5 películas recomendadas para el id de usuario user
+    
+    get_user_films(user : int) -> list
+        Devuelve una lista con las películas que el usuario con id user ha puntuado
     """
     def __init__(self, data_path) -> None:
         """
