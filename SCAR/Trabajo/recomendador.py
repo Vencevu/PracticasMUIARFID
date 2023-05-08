@@ -32,12 +32,16 @@ class Recomendador():
     -------
     register_user(age, gender, occupation) -> None
         Da de alta a un usuario
+
     log_in(self, user, passwd) -> bool
         Inicia sesión en la cuenta de un usuario registrado. Devuelve True si el inicio ha sido correcto, False en otro caso.
+    
     load_grupos_demograficos() -> None
         Carga el diccionario de grupos demográficos
+    
     rate_film(film, score) -> None
         Puntua una película por un usuario agregando el registro a films_df
+    
     obtener_recomendacion(user) -> list
         Devuelve una lista de 5 películas recomendadas para el id de usuario user
     """
