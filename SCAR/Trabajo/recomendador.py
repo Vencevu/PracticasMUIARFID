@@ -11,9 +11,9 @@ class Recomendador():
     ----------
     preferencias : numpy.matrix
         matriz de preferencias con los 6 géneros favoritos de cada usuario
-    pref_hyb : np.matrix
+    pref_hyb : numpy.matrix
         matriz de preferencias con los 6 géneros favoritos de cada usuario según su grupo demográfico
-    pref_dg : np.matrix
+    pref_dg : numpy.matrix
         matriz de preferencias con los 6 géneros favoritos de cada grupo demográfico
     grupos_demograficos : dict
         diccionario donde la clave es el usuario y el valor el grupo demográfico al que pertenece
