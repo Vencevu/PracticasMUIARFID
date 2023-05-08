@@ -81,6 +81,11 @@ class Recomendador():
             return True
         
         return False
+    
+    def get_user_films(self, user) -> list:
+        res = []
+        res = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
+        return res
 
     def rate_film(self, film, score) -> None:
         self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
