@@ -82,7 +82,19 @@ class Recomendador():
         
         return False
     
-    def get_user_films(self, user) -> list:
+    def get_user_films(self, user : int) -> list:
+        """Obtiene las películas puntuadas por un usuario
+
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+
+        Returns
+        -------
+        list
+            una lista con los ids de las películas
+        """
         res = []
         res = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
         return res
