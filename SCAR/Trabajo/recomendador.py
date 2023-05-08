@@ -36,6 +36,8 @@ class Recomendador():
         Inicia sesión en la cuenta de un usuario registrado. Devuelve True si el inicio ha sido correcto, False en otro caso.
     load_grupos_demograficos() -> None
         Carga el diccionario de grupos demográficos
+    rate_film(film, score) -> None
+        Puntua una película por un usuario agregando el registro a films_df
     """
     def __init__(self, data_path) -> None:
         """
@@ -74,7 +76,7 @@ class Recomendador():
         
         return False
 
-    def rate_film(self, film, score):
+    def rate_film(self, film, score) -> None:
         self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
 
     def get_hyb_pref(self):
@@ -85,7 +87,7 @@ class Recomendador():
 
         pref_hyb = np.matrix(pref_hyb)
 
-    def load_grupos_demograficos(self):
+    def load_grupos_demograficos(self) -> None:
         self.grupos_demograficos = {}
         for user_id in self.users_df.user_id.unique().tolist():
             user = self.users_df[self.users_df.user_id == user_id]
@@ -120,12 +122,12 @@ class Recomendador():
 
         return res
     
-    def load_preferencias(self, path="", path_dg="", path_hyb=""):
+    def load_preferencias(self, path="", path_dg="", path_hyb="") -> None:
         self.preferencias = np.load(path)['a'] if path != "" else self.get_pref()
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
         self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
         
-    def save_preferencias(self, path="."):
+    def save_preferencias(self, path=".") -> None:
         np.savez_compressed(path+"/preferencias", a=self.preferencias)
         np.savez_compressed(path+"/preferencias_demografico", a=self.pref_dg)
         np.savez_compressed(path+"/preferencias_hibrido", a=self.pref_hyb)
@@ -183,7 +185,7 @@ class Recomendador():
 
         return pref
 
-    def obtener_vecinos(preferencias, user, k=1):
+    def obtener_vecinos(preferencias, user, k=1) -> tuple(list, list):
         vecinos = [0]*k
         vecinos_score = [0]*k
         pref = preferencias[user]
