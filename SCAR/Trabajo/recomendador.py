@@ -91,7 +91,7 @@ class Recomendador():
 
     def load_grupos_demograficos(self) -> None:
 
-        def get_user_type(self, gender, age, occupation):
+        def get_user_type(gender, age, occupation):
             res = 0
             group1 = ['doctor', 'healthcare', 'entertainment']
             group2 = ['engineer', 'programmer', 'scientist', 'technician']
