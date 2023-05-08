@@ -266,7 +266,7 @@ class Recomendador():
         pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
         return [x for x in pelis_vecino if x not in pelis_user][:5]
 
-    def get_dg_pref(self):
+    def get_dg_pref(self) -> np.matrix:
         res = []
         for x in set(self.grupos_demograficos.values()):
             u_dg = [k for k, v in self.grupos_demograficos.items() if v == x]
