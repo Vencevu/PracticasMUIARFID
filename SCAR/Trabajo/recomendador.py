@@ -38,7 +38,7 @@ class Recomendador():
         Carga el diccionario de grupos demográficos
     rate_film(film, score) -> None
         Puntua una película por un usuario agregando el registro a films_df
-    obtener_recomendacion(film, user) -> list
+    obtener_recomendacion(user) -> list
         Devuelve una lista de 5 películas recomendadas para el id de usuario user
     """
     def __init__(self, data_path) -> None:
