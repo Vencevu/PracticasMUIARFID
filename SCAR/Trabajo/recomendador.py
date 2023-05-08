@@ -4,7 +4,46 @@ import requests
 import tmdbsimple as tmdb
 
 class Recomendador():
+    """
+    Clase que representa un sistema de recomendacion
+
+    Attributes
+    ----------
+    preferencias : numpy.matrix
+        matriz de preferencias con los 6 géneros favoritos de cada usuario
+    pref_hyb : np.matrix
+        matriz de preferencias con los 6 géneros favoritos de cada usuario según su grupo demográfico
+    pref_dg : np.matrix
+        matriz de preferencias con los 6 géneros favoritos de cada grupo demográfico
+    grupos_demograficos : dict
+        diccionario donde la clave es el usuario y el valor el grupo demográfico al que pertenece
+    user : int
+        id del usuario que ha iniciado sesión. Si nadie ha iniciado sesión su valor es -1
+    users_df : pandas.DataFrame
+        DataFrame con los usuarios registrados
+    ratings : pandas.DataFrame
+        DataFrame con las puntuaciones de cada pelicula por cada usuario
+    generos : pandas.DataFrame
+        DataFrame con los géneros de las películas registradas
+    films_df : pandas.DataFrame
+        DataFrame con las películas registradas
+
+    Methods
+    -------
+    register_user(age, gender, occupation) -> None
+        Da de alta a un usuario
+    log_in(self, user, passwd) -> bool
+        Inicia sesión en la cuenta de un usuario registrado. Devuelve True si el inicio ha sido correcto, False en otro caso.
+    load_grupos_demograficos() -> None
+        Carga el diccionario de grupos demográficos
+    """
     def __init__(self, data_path) -> None:
+        """
+        Parameters
+        ----------
+        data_path : str
+            Directorio donde se almacenan los archivos de datos del sistema (genre.txt, items.txt, u1_base.txt y users.txt)
+        """
         tmdb.REQUESTS_SESSION = requests.Session()
         tmdb.API_KEY = '1e11e7d4c5f3aad6e459fc0f63bfb0f5'
         tmdb.REQUESTS_TIMEOUT = 5
@@ -24,10 +63,10 @@ class Recomendador():
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
     
-    def register_user(self, age, gender, occupation):
+    def register_user(self, age, gender, occupation) -> None:
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
     
-    def log_in(self, user, passwd):
+    def log_in(self, user, passwd) -> bool:
         user = self.users_df[self.users_df.user_id == user]['user_id'].tolist()
         if len(user) > 0 and passwd == "inicio"+user[0]:
             self.user = user[0]
