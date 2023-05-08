@@ -114,6 +114,13 @@ class Recomendador():
         pref_hyb = np.matrix(pref_hyb)
 
     def load_grupos_demograficos(self) -> None:
+        """Rellena el atributo grupos_demograficos
+        
+        Returns
+        -------
+        None
+
+        """
 
         def get_user_type(gender, age, occupation):
             res = 0
