@@ -60,6 +60,7 @@ class Recomendador():
         self.pref_hyb = []
         self.pref_dg = []
         self.grupos_demograficos = {}
+        self.data_path = data_path
 
         #Usuario que inicia sesion
         self.user = -1
