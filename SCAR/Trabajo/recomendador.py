@@ -6,7 +6,6 @@ import tmdbsimple as tmdb
 class Recomendador():
     """
     Clase que representa un sistema de recomendacion
-
     Attributes
     ----------
     preferencias : numpy.matrix
@@ -27,12 +26,10 @@ class Recomendador():
         DataFrame con los géneros de las películas registradas
     films_df : pandas.DataFrame
         DataFrame con las películas registradas
-
     Methods
     -------
     register_user(age, gender : str, occupation : str) -> None
         Da de alta a un usuario
-
     log_in(self, user, passwd) -> bool
         Inicia sesión en la cuenta de un usuario registrado. Devuelve True si el inicio ha sido correcto, False en otro caso.
     
@@ -42,8 +39,8 @@ class Recomendador():
     rate_film(film, score) -> None
         Puntua una película por un usuario agregando el registro a films_df
     
-    obtener_recomendacion(user : int) -> list
-        Devuelve una lista de 5 películas recomendadas para el id de usuario user
+    obtener_recomendacion(user : int, n: int) -> list
+        Devuelve una lista de n películas recomendadas para el id de usuario user
     
     get_user_films(user : int) -> list
         Devuelve una lista con las películas que el usuario con id user ha puntuado
@@ -67,32 +64,63 @@ class Recomendador():
         #Usuario que inicia sesion
         self.user = -1
         
-        self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation"], sep="\t")
+        self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation", "user_name"], sep="\t")
         self.ratings = pd.read_csv(data_path+"/u1_base.txt", names=["user_id", "movie_id", "rating"], sep="\t")
         self.generos = pd.read_csv(data_path+"/genre.txt", names=["genre_id", "genre_name"], sep="\t")
         all_genre = self.generos.genre_name.values.tolist()
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
+
+    def save_data(self, path='.'):
+        self.users_df.to_csv(path+'/users.txt', header=None, index=None, sep='\t', mode='w')
+        self.ratings.to_csv(path+'/u1_base.txt', header=None, index=None, sep='\t', mode='w')
+        self.films_df.to_csv(path+'/items.txt', header=None, index=None, sep='\t', mode='w')
     
-    def register_user(self, age, gender, occupation) -> None:
-        self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index), age, gender, occupation]
+    def register_user(self, age, gender, occupation, nickname) -> None:
+        """Regsitra a un nuevo usuario
+        Parameters
+        ----------
+        age : int
+            Edad
+        gender : str
+            Sexo
+        occupation : str
+            Profesion
+        Returns
+        -------
+        None
+        """
+        self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index)+1, age, gender, occupation, nickname]
     
     def log_in(self, user, passwd) -> bool:
+        """Inicia sesión
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        passwd : str
+            Contraseña
+        Returns
+        -------
+        bool
+            Devuelve True si se ha iniciado sesión correctamente, False en otro caso
+        """
         user = self.users_df[self.users_df.user_id == user]['user_id'].tolist()
-        if len(user) > 0 and passwd == "inicio"+user[0]:
+        if len(user) > 0 and passwd == "inicio"+str(user[0]):
             self.user = user[0]
             return True
         
         return False
     
+    def log_out(self) -> None:
+        self.user = -1
+    
     def get_user_films(self, user : int) -> list:
         """Obtiene las películas puntuadas por un usuario
-
         Parameters
         ----------
         user : int
             Id del usuario
-
         Returns
         -------
         list
@@ -103,12 +131,26 @@ class Recomendador():
         return res
 
     def rate_film(self, film, score) -> None:
-        self.ratings.loc[len(self.ratings.index)] = [len(self.ratings.index), self.user, film, score]
+        """Puntúa una película por el usuario que ha inciado sesión
+        Parameters
+        ----------
+        film : int
+            Id de la película
+        score : float
+            Puntuación
+        Returns
+        -------
+        None
+        """
+        if self.ratings[(self.ratings.movie_id == film) & (self.ratings.user_id == self.user)].size == 0:
+            self.ratings.loc[len(self.ratings.index)] = [self.user, film, score]
+        else:
+            self.ratings.loc[self.ratings[(self.ratings.movie_id == film) & (self.ratings.user_id == self.user)].index[0]] = [self.user,film,score]
 
     def get_hyb_pref(self):
         pref_hyb = []
         for u in self.ratings.user_id.unique().tolist():
-            pref = np.round(np.sum(np.matrix([self.preferencias['a'][u-1], self.pref_dg['a'][self.grupos_demograficos[u]-1]]), axis=0)/2, 0).tolist()[0]
+            pref = np.round(np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1]]), axis=0)/2, 0).tolist()[0]
             pref_hyb.append(pref)
 
         pref_hyb = np.matrix(pref_hyb)
@@ -119,7 +161,6 @@ class Recomendador():
         Returns
         -------
         None
-
         """
 
         def get_user_type(gender, age, occupation):
@@ -189,7 +230,7 @@ class Recomendador():
         for u in self.ratings.user_id.unique().tolist():
             best_genres = []
             for i in self.generos['genre_name'].tolist():
-                puntos = self.genre_seen(self.films_df, self.ratings, u, i)
+                puntos = self.genre_seen(u, i)
                 if puntos > 2.5:
                     best_genres.append((i, puntos))
 
@@ -213,11 +254,33 @@ class Recomendador():
         return res
     
     def load_preferencias(self, path="", path_dg="", path_hyb="") -> None:
+        """Carga las matrices de preferencias
+        Parameters
+        ----------
+        path : str
+            Ruta del archivo de preferencias
+        path_dg : str
+            Ruta del archivo de preferencias demográficas
+        path_dg : str
+            Ruta del archivo de preferencias híbridas
+        Returns
+        -------
+        None
+        """
         self.preferencias = np.load(path)['a'] if path != "" else self.get_pref()
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
         self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
         
     def save_preferencias(self, path=".") -> None:
+        """Guarda las matrices de preferencias en sus respectivos archivos
+        Parameters
+        ----------
+        path : str
+            Ruta del directorio en el que se guardan los archivos
+        Returns
+        -------
+        None
+        """
         np.savez_compressed(path+"/preferencias", a=self.preferencias)
         np.savez_compressed(path+"/preferencias_demografico", a=self.pref_dg)
         np.savez_compressed(path+"/preferencias_hibrido", a=self.pref_hyb)
@@ -250,7 +313,7 @@ class Recomendador():
         best_genres = {}
         for u in users:
             for i in self.generos['genre_name'].tolist():
-                puntos = self.genre_seen(self.films_df, self.ratings, u, i)
+                puntos = self.genre_seen(u, i)
                 if puntos > 2.5:
                     if i not in best_genres.keys():
                         best_genres[i] = puntos/len(users)
@@ -275,7 +338,7 @@ class Recomendador():
 
         return pref
 
-    def obtener_vecinos(preferencias, user, k=1) -> tuple(list, list):
+    def obtener_vecinos(self, preferencias, user, k=1) -> tuple:
         vecinos = [0]*k
         vecinos_score = [0]*k
         pref = preferencias[user]
@@ -291,17 +354,82 @@ class Recomendador():
                 
         return vecinos, vecinos_score
 
-    def obtener_recomendacion(self, user) -> list:
+    def obtener_recomendacion(self, user, n) -> list:
+        """Obtiene películas recomendadas para un usuario
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        Returns
+        -------
+        list
+            Lista con los ids de las películas
+        """
         vecino = self.obtener_vecinos(self.preferencias, 0, 1)
         pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
         pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
-        return [x for x in pelis_vecino if x not in pelis_user][:5]
+        return [x for x in pelis_vecino if x not in pelis_user][:n]
+
+    def obtener_recomendacion_dg(self, user, n) -> list:
+        """Obtiene películas recomendadas por grupo demográfico para un usuario
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        Returns
+        -------
+        list
+            Lista con los ids de las películas
+        """
+        if self.grupos_demograficos == []:
+            print("Falta cargar los grupos demográficos, load_grupos_demograficos()")
+            return []
+
+        grupo = self.grupos_demograficos[user]
+        vecino = self.obtener_vecinos(self.pref_dg, grupo, 1)
+        pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
+        pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
+        return [x for x in pelis_vecino if x not in pelis_user][:n]
+    
+    def obtener_recomendacion_hyb(self, user, n) -> list:
+        """Obtiene películas recomendadas de modo híbrido para un usuario
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        Returns
+        -------
+        list
+            Lista con los ids de las películas
+        """
+        vecino = self.obtener_vecinos(self.pref_hyb, 0, 1)
+        pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
+        pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
+        return [x for x in pelis_vecino if x not in pelis_user][:n]
 
     def get_dg_pref(self) -> np.matrix:
         res = []
         for x in set(self.grupos_demograficos.values()):
             u_dg = [k for k, v in self.grupos_demograficos.items() if v == x]
-            scores = self.get_genres_score(u_dg, self.generos, self.films_df, self.ratings)
+            scores = self.get_genres_score(u_dg)
             res.append(scores)
 
         return np.matrix(res)
+    
+    def get_user_film_rate(self, user, film):
+        """Obtiene la puntuacion de una pelicula por un usuario
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        film : int
+            Id de la pelicula
+        Returns
+        -------
+        int
+            Puntuación de la película, o -1 si la película no ha sido puntuada por el usuario
+        """
+        if len(self.ratings[(self.ratings.movie_id == film) & (self.ratings.user_id == user)]['rating'].tolist()) > 0:
+            return self.ratings[(self.ratings.movie_id == film) & (self.ratings.user_id == user)]['rating'].tolist()[0]
+        else:
+            return -1
