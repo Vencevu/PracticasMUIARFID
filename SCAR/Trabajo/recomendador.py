@@ -287,7 +287,7 @@ class Recomendador():
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
         self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
         
-    def save_preferencias(self, path=".") -> None:
+    def save_preferencias(self, path="../data") -> None:
         """Guarda las matrices de preferencias en sus respectivos archivos
 
         Parameters
