@@ -158,10 +158,17 @@ class Recomendador():
     def get_hyb_pref(self):
         pref_hyb = []
         for u in self.ratings.user_id.unique().tolist():
-            pref = (np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1].tolist()[0]]), axis=0)/2).tolist()[0]
+            if (type(self.preferencias) == np.ndarray) & (type(self.pref_dg) == np.ndarray):
+                pref = (np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1]]), axis=0)/2).tolist()[0]
+            elif (type(self.preferencias) == np.matrix) & (type(self.pref_dg) == np.ndarray):
+                pref = (np.sum(np.matrix([self.preferencias[u-1].tolist()[0], self.pref_dg[self.grupos_demograficos[u]-1]]), axis=0)/2).tolist()[0]
+            elif (type(self.preferencias) == np.ndarray) & (type(self.pref_dg) == np.matrix):
+                pref = (np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1].tolist()[0]]), axis=0)/2).tolist()[0]
+            elif (type(self.preferencias) == np.matrix) & (type(self.pref_dg) == np.ndarray):
+                pref = (np.sum(np.matrix([self.preferencias[u-1].tolist()[0], self.pref_dg[self.grupos_demograficos[u]-1].tolist()[0]]), axis=0)/2).tolist()[0]
             pref_hyb.append(pref)
 
-        pref_hyb = np.matrix(pref_hyb)
+        return np.matrix(pref_hyb)
 
     def load_grupos_demograficos(self) -> None:
         """Rellena el atributo grupos_demograficos
