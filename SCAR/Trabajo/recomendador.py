@@ -286,6 +286,9 @@ class Recomendador():
         self.preferencias = np.load(path)['a'] if path != "" else self.get_pref()
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
         self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
+
+        self.save_preferencias()
+        self.load_preferencias(path='../data/preferencias.npz', path_dg='../data/preferencias_demografico.npz', path_hyb='../data/preferencias_hibrido.npz')
         
     def save_preferencias(self, path="../data") -> None:
         """Guarda las matrices de preferencias en sus respectivos archivos
