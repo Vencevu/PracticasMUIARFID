@@ -44,6 +44,9 @@ class Recomendador():
     
     get_user_films(user : int) -> list
         Devuelve una lista con las películas que el usuario con id user ha puntuado
+
+    save_user_pref(user : int, user_pref : list) -> None
+        Guarda las preferencias del usuario user
     """
     def __init__(self, data_path) -> None:
         """
@@ -79,6 +82,7 @@ class Recomendador():
     
     def register_user(self, age, gender, occupation, nickname) -> None:
         """Regsitra a un nuevo usuario
+
         Parameters
         ----------
         age : int
@@ -95,6 +99,7 @@ class Recomendador():
     
     def log_in(self, user, passwd) -> bool:
         """Inicia sesión
+
         Parameters
         ----------
         user : int
@@ -118,6 +123,7 @@ class Recomendador():
     
     def get_user_films(self, user : int) -> list:
         """Obtiene las películas puntuadas por un usuario
+
         Parameters
         ----------
         user : int
@@ -133,6 +139,7 @@ class Recomendador():
 
     def rate_film(self, film, score) -> None:
         """Puntúa una película por el usuario que ha inciado sesión
+
         Parameters
         ----------
         film : int
@@ -151,7 +158,7 @@ class Recomendador():
     def get_hyb_pref(self):
         pref_hyb = []
         for u in self.ratings.user_id.unique().tolist():
-            pref = np.round(np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1]]), axis=0)/2, 0).tolist()[0]
+            pref = (np.sum(np.matrix([self.preferencias[u-1], self.pref_dg[self.grupos_demograficos[u]-1].tolist()[0]]), axis=0)/2).tolist()[0]
             pref_hyb.append(pref)
 
         pref_hyb = np.matrix(pref_hyb)
@@ -246,7 +253,7 @@ class Recomendador():
                         add = True
                         break
                 if add:
-                    pref.append(1)
+                    pref.append(bg[1])
                 else:
                     pref.append(0)
 
@@ -256,6 +263,7 @@ class Recomendador():
     
     def load_preferencias(self, path="", path_dg="", path_hyb="") -> None:
         """Carga las matrices de preferencias
+
         Parameters
         ----------
         path : str
@@ -274,6 +282,7 @@ class Recomendador():
         
     def save_preferencias(self, path=".") -> None:
         """Guarda las matrices de preferencias en sus respectivos archivos
+
         Parameters
         ----------
         path : str
@@ -289,6 +298,12 @@ class Recomendador():
     def movie_votes_demographic(self, grupos, movie_id, grupo):
         usuarios = [k for k, v in grupos.items() if v == grupo]
         return len(self.ratings[(self.ratings.user_id.isin(usuarios)) & (self.ratings.movie_id == movie_id)].index), self.ratings[(self.ratings.user_id.isin(usuarios)) & (self.ratings.movie_id == movie_id)].mean()['rating'], self.ratings[self.ratings.movie_id == movie_id].mean()['rating']
+
+    def save_user_pref(self,user, user_pref) -> None:
+        if user > self.preferencias.shape[0]:
+            self.preferencias = np.append(self.preferencias, [user_pref], axis=0)
+        else:
+            self.preferencias[user-1,:] = user_pref
 
     def genre_seen(self, user_id, genre_name):
         scores = []
@@ -333,7 +348,7 @@ class Recomendador():
                     add = True
                     break
             if add:
-                pref.append(1)
+                pref.append(v)
             else:
                 pref.append(0)
 
@@ -347,7 +362,7 @@ class Recomendador():
             if i == user:
                 continue
             pref_comp = np.matrix([pref, preferencias[i]])
-            score = sum([1 if pref_comp[0,j] == pref_comp[1,j] else 0 for j in range(0, pref_comp.shape[1])])
+            score = sum([abs(pref_comp[0,j] - pref_comp[1,j]) for j in range(0, pref_comp.shape[1])])
             if score > min(vecinos_score):
                 vecinos[vecinos_score.index(min(vecinos_score))] = i + 1
                 vecinos_score[vecinos_score.index(min(vecinos_score))] = score
