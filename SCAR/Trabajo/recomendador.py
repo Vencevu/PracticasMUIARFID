@@ -83,12 +83,12 @@ class Recomendador():
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
         if exists(data_path+"/films.txt"):
             film_id_df = pd.read_csv(data_path+"/films.txt",encoding="iso-8859-1", sep="\t",names=["movie_id","tmdb_id"])
-            print(self.films_df.columns, film_id_df.columns)
+            film_id_df['movie_id']=film_id_df['movie_id'].astype(int)
             self.films_df = self.films_df.merge(film_id_df,on="movie_id")
         else:
             film_id_df = self.preprocess_films()
             self.films_df = self.films_df.merge(film_id_df,on="movie_id")
-        print(self.films_df)
+        # print(self.films_df)
 
     def save_data(self, path='.'):
         self.users_df.to_csv(path+'/users.txt', header=None, index=None, sep='\t', mode='w')
@@ -415,6 +415,52 @@ class Recomendador():
         pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
         pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
         return [x for x in pelis_vecino if x not in pelis_user][:n]
+    
+    def obtener_recomendacion_contenido(self, user, n) -> list:
+        """Obtiene películas recomendadas para un usuario por contenido
+        Parameters
+        ----------
+        user : int
+            Id del usuario
+        Returns
+        -------
+        list
+            Lista con los ids de las películas
+        """
+        res = []
+        aux = 0
+        pelis_user = self.ratings[self.ratings.user_id == user].sort_values(by='rating', ascending=False)['movie_id'].tolist()
+        for p in pelis_user:
+            x = self.films_df[self.films_df.movie_id == p]
+            r = self.films_df[(self.films_df['Action'] == x['Action'].tolist()[0]) &
+                              (self.films_df['Adventure'] == x['Adventure'].tolist()[0]) &
+                              (self.films_df['Adventure'] == x['Animation'].tolist()[0]) &
+                              (self.films_df["Children's"] == x["Children's"].tolist()[0]) &
+                              (self.films_df['Comedy'] == x['Comedy'].tolist()[0]) &
+                              (self.films_df['Crime'] == x['Crime'].tolist()[0]) &
+                              (self.films_df['Documentary'] == x['Documentary'].tolist()[0]) &
+                              (self.films_df['Drama'] == x['Drama'].tolist()[0]) &
+                              (self.films_df['Fantasy'] == x['Fantasy'].tolist()[0]) &
+                              (self.films_df['Film-Noir'] == x['Film-Noir'].tolist()[0]) &
+                              (self.films_df['Horror'] == x['Horror'].tolist()[0]) &
+                              (self.films_df['Musical'] == x['Musical'].tolist()[0]) &
+                              (self.films_df['Mystery'] == x['Mystery'].tolist()[0]) &
+                              (self.films_df['Romance'] == x['Romance'].tolist()[0]) &
+                              (self.films_df['Sci-Fi'] == x['Sci-Fi'].tolist()[0]) &
+                              (self.films_df['Thriller'] == x['Thriller'].tolist()[0]) &
+                              (self.films_df['War'] == x['War'].tolist()[0]) &
+                              (self.films_df['Western'] == x['Western'].tolist()[0])
+                              ]['movie_id'].tolist()
+
+            if len(r) > 0:
+                if r[0] not in res:
+                    res.append(r[0])
+                    aux+=1
+
+            if aux >= n:
+                break
+            
+        return list(set(res))
 
     def obtener_recomendacion_dg(self, user, n) -> list:
         """Obtiene películas recomendadas por grupo demográfico para un usuario
@@ -507,6 +553,6 @@ class Recomendador():
             d.append((p, self.get_film_id(p)))
 
         res = pd.DataFrame(d, columns=('movie_id', 'tmdb_id'))
-        res.to_csv('./films.txt', index=None, sep='\t', mode='w')
+        res.to_csv('../data/films.txt',header=None, index=None, sep='\t', mode='w')
         return res
         
