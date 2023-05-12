@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import requests
-import os
 from scipy.stats import pearsonr
 import tmdbsimple as tmdb
+from os.path import exists
 
 class Recomendador():
     """
@@ -69,12 +69,26 @@ class Recomendador():
         #Usuario que inicia sesion
         self.user = -1
         
-        self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation", "user_name"], sep="\t")
+        self.users_df = pd.read_csv(data_path+"/users.txt", names=["user_id", "age", "gender", "occupation", "user_name"], sep="\t",dtype={
+                    'user_id': 'int64',
+                    'age': 'int64',
+                    'gender': 'object',
+                    'occupation': 'object',
+                    'user_name': 'object',
+                 })
         self.ratings = pd.read_csv(data_path+"/u1_base.txt", names=["user_id", "movie_id", "rating"], sep="\t")
         self.generos = pd.read_csv(data_path+"/genre.txt", names=["genre_id", "genre_name"], sep="\t")
         all_genre = self.generos.genre_name.values.tolist()
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
+        if exists(data_path+"/films.txt"):
+            film_id_df = pd.read_csv(data_path+"/films.txt",encoding="iso-8859-1", sep="\t",names=["movie_id","tmdb_id"])
+            print(self.films_df.columns, film_id_df.columns)
+            self.films_df = self.films_df.merge(film_id_df,on="movie_id")
+        else:
+            film_id_df = self.preprocess_films()
+            self.films_df = self.films_df.merge(film_id_df,on="movie_id")
+        print(self.films_df)
 
     def save_data(self, path='.'):
         self.users_df.to_csv(path+'/users.txt', header=None, index=None, sep='\t', mode='w')
@@ -96,6 +110,7 @@ class Recomendador():
         None
         """
         self.users_df.loc[len(self.users_df.index)] = [len(self.users_df.index)+1, age, gender, occupation, nickname]
+        self.save_data()
     
     def log_in(self, user, passwd) -> bool:
         """Inicia sesión
@@ -110,7 +125,7 @@ class Recomendador():
         bool
             Devuelve True si se ha iniciado sesión correctamente, False en otro caso
         """
-        user = self.users_df[self.users_df.user_id == user]['user_id'].tolist()
+        user = self.users_df[self.users_df['user_name'] == user]['user_name'].tolist()
         if len(user) > 0 and passwd == "inicio"+str(user[0]):
             self.user = user[0]
             return True
@@ -120,8 +135,11 @@ class Recomendador():
     def log_out(self) -> None:
         self.user = -1
     
+    def get_username_id(self,username) -> None:
+        return self.users_df[self.users_df['user_name'] == username]['user_id'].tolist()[0]
+    
     def get_user_films(self, user : int) -> list:
-        """Obtiene las películas puntuadas por un usuario
+        """Obtiene las películas puntuadas por un usuario y sus notas
         Parameters
         ----------
         user : int
@@ -129,11 +147,14 @@ class Recomendador():
         Returns
         -------
         list
-            una lista con los ids de las películas
+            una lista con los ids de las películas, otra lista con las notas
         """
         res = []
         res = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
-        return res
+        notas = []
+        for i in res:
+            notas.append(self.get_user_film_rate(user,i))
+        return [res,notas]
 
     def rate_film(self, film, score) -> None:
         """Puntúa una película por el usuario que ha inciado sesión
@@ -243,7 +264,8 @@ class Recomendador():
             best_genres = []
             for i in self.generos['genre_name'].tolist():
                 puntos = self.genre_seen(u, i)
-                best_genres.append((i, puntos))
+                if puntos > 2.5:
+                    best_genres.append((i, puntos))
 
             best_genres.sort(key=lambda a: a[1], reverse=True)
             best_genres = best_genres[:6]
@@ -361,23 +383,21 @@ class Recomendador():
         return pref
 
     def obtener_vecinos(self, preferencias, user, k=1) -> tuple:
-        if user < 1 or user >= preferencias.shape[0]:
-            return [], []
-        
-        vecinos = [-2]*k
-        vecinos_score = [-2]*k
+        vecinos = [0]*k
+        vecinos_score = [0]*k
         pref = preferencias[user]
         for i in range(0, preferencias.shape[0]):
-            if i + 1 == user:
+            if i == user:
                 continue
-
             score = pearsonr(pref, preferencias[i])[0]
             if score > min(vecinos_score):
                 vecinos[vecinos_score.index(min(vecinos_score))] = i + 1
                 vecinos_score[vecinos_score.index(min(vecinos_score))] = score
-            else:
-                print(i)
-
+                
+        res = (vecinos, vecinos_score)
+        vecinos2, vecinos_score2 = [], []
+        for _ in res[0]:
+            max_val = vecinos.index(max(vecinos_score))
         return vecinos, vecinos_score
 
     def obtener_recomendacion_cooperativa(self, user, n) -> list:
@@ -462,13 +482,24 @@ class Recomendador():
     
     def get_film_id(self, film_id):
         film = self.films_df[self.films_df.movie_id == film_id]['title'].tolist()[0].split()
-        film_name = film[0]
-        film_year = film[-1].replace(')', '').replace(')','')
+        film_name = ' '.join(film[:-1])
+        film_year = film[-1].replace('(', '').replace(')','')
         movie = tmdb.Search().movie(query=film_name, year=film_year)
+        if len(movie['results']) == 0: #Buscamos sin año
+            movie = tmdb.Search().movie(query=film_name)
+        if len(movie['results']) == 0: #Buscamos solo parentesis
+            new_name = film_name.split("(")[0]
+            movie = tmdb.Search().movie(query=new_name[:-1])
+
         if len(movie['results']) > 0:
+            print(film_name, film_year, movie["results"][0]['id'])
             return movie["results"][0]['id']
         else:
+            print("FALLOOOOOOOOOOOOO", film_name, film_year)
             return -1
+    
+    def tmdb_id(self,movie_id):
+        return self.films_df[self.films_df["movie_id"]==movie_id]["tmdb_id"].to_list()[0]
     
     def preprocess_films(self):
         d = []
@@ -476,14 +507,6 @@ class Recomendador():
             d.append((p, self.get_film_id(p)))
 
         res = pd.DataFrame(d, columns=('movie_id', 'tmdb_id'))
-        res.to_csv('../data/films.txt', header=None, index=None, sep='\t', mode='w')
-    
-    def save_user_neighbours(self, user) -> None:
-        if not os.path.exists('../data/usuarios/'+str(user)):
-            os.makedirs('../data/usuarios/'+str(user))
-        vecinos, vecinos_score = self.obtener_vecinos(self.preferencias_coop, user, self.preferencias_coop.shape[0]-1)
-        aux = pd.DataFrame({'vecino':vecinos, 'afinidad':vecinos_score})
-        aux.to_csv('../data/usuarios/'+str(user)+'/vecinos.txt', header=None, index=None, sep='\t', mode='w')
-
-
+        res.to_csv('./films.txt', index=None, sep='\t', mode='w')
+        return res
         
