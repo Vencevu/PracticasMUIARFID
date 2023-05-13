@@ -5,6 +5,7 @@ import requests
 from scipy.stats import pearsonr
 import tmdbsimple as tmdb
 from os.path import exists
+import os
 
 class Recomendador():
     """
@@ -571,3 +572,9 @@ class Recomendador():
         res.to_csv('../data/films.txt',header=None, index=None, sep='\t', mode='w')
         return res
         
+    def save_user_neighbours(self, user) -> None:
+        if not os.path.exists('../data/usuarios/'+str(user)):
+            os.makedirs('../data/usuarios/'+str(user))
+        vecinos, vecinos_score = self.obtener_vecinos(self.preferencias_coop, user, self.preferencias_coop.shape[0]-1)
+        aux = pd.DataFrame({'vecino':vecinos, 'afinidad':vecinos_score})
+        aux.to_csv('../data/usuarios/'+str(user)+'/vecinos.txt', header=None, index=None, sep='\t', mode='w')
