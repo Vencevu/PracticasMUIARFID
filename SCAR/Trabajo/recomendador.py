@@ -431,6 +431,9 @@ class Recomendador():
         res = []
         aux = 0
         pelis_user = self.ratings[self.ratings.user_id == user].sort_values(by='rating', ascending=False)['movie_id'].tolist()
+        if len(pelis_user) == 0:
+            res = self.films_df.iloc[:, [i + 1 for i in self.generos.loc[np.argpartition(self.preferencias_coop[user], -4)[-6:]]['genre_id'].tolist()]].sum(axis=1).sort_values(ascending=False).keys()
+            return res[:n]
         for p in pelis_user:
             x = self.films_df[self.films_df.movie_id == p]
             r = self.films_df[(self.films_df['Action'] == x['Action'].tolist()[0]) &
