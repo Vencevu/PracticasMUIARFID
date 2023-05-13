@@ -63,7 +63,6 @@ class Recomendador():
         tmdb.REQUESTS_TIMEOUT = 5
 
         self.preferencias_coop = []
-        self.pref_hyb = []
         self.pref_dg = []
         self.grupos_demograficos = {}
         self.data_path = data_path
@@ -304,12 +303,10 @@ class Recomendador():
         """
         self.preferencias_coop = np.load(path)['a'] if path != "" else self.get_pref()
         self.pref_dg = np.load(path_dg)['a'] if path_dg != "" else self.get_dg_pref()
-        self.pref_hyb = np.load(path_hyb)['a'] if path_hyb != "" else self.get_hyb_pref()
 
         self.save_preferencias()
         self.preferencias_coop = np.load('../data/preferencias.npz')['a']
         self.pref_dg = np.load('../data/preferencias_demografico.npz')['a']
-        self.pref_hyb = np.load('../data/preferencias_hibrido.npz')['a']
         
     def save_preferencias(self, path="../data") -> None:
         """Guarda las matrices de preferencias en sus respectivos archivos
@@ -323,7 +320,6 @@ class Recomendador():
         """
         np.savez_compressed(path+"/preferencias", a=self.preferencias_coop)
         np.savez_compressed(path+"/preferencias_demografico", a=self.pref_dg)
-        np.savez_compressed(path+"/preferencias_hibrido", a=self.pref_hyb)
 
     def movie_votes_demographic(self, grupos, movie_id, grupo):
         usuarios = [k for k, v in grupos.items() if v == grupo]
