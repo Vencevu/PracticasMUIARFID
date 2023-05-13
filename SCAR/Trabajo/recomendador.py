@@ -91,7 +91,7 @@ class Recomendador():
             self.films_df = self.films_df.merge(film_id_df,on="movie_id")
         # print(self.films_df)
 
-    def save_data(self, path='.'):
+    def save_data(self, path='../data'):
         self.users_df.to_csv(path+'/users.txt', header=None, index=None, sep='\t', mode='w')
         self.ratings.to_csv(path+'/u1_base.txt', header=None, index=None, sep='\t', mode='w')
         self.films_df.to_csv(path+'/items.txt', header=None, index=None, sep='\t', mode='w')
