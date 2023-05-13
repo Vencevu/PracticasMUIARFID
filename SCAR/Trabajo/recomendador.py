@@ -1,4 +1,5 @@
 import numpy as np
+from random import shuffle
 import pandas as pd
 import requests
 from scipy.stats import pearsonr
@@ -483,21 +484,32 @@ class Recomendador():
         pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
         return [x for x in pelis_vecino if x not in pelis_user][:n]
     
-    def obtener_recomendacion_hyb(self, user, n) -> list:
+    def obtener_recomendacion_hyb(self, user, recomendadores, n) -> list:
         """Obtiene películas recomendadas de modo híbrido para un usuario
         Parameters
         ----------
         user : int
             Id del usuario
+        recomendadores : list
+            lista de recomendadores a usar
+        n : int
+            numero de peliculas a recomendar
         Returns
         -------
         list
             Lista con los ids de las películas
         """
-        vecino = self.obtener_vecinos(self.pref_hyb, 0, 1)
-        pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
-        pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
-        return [x for x in pelis_vecino if x not in pelis_user][:n]
+        res = []
+        if 'cooperativo' in recomendadores:
+            res.append(self.obtener_recomendacion_cooperativa(user, n))
+        if 'contenido' in recomendadores:
+            res.append(self.obtener_recomendacion_contenido(user, n))
+        if 'demografico' in recomendadores:
+            res.append(self.obtener_recomendacion_dg(user, n))
+        
+        shuffle(res)
+
+        return res
 
     def get_dg_pref(self) -> np.matrix:
         res = []
