@@ -452,7 +452,8 @@ class Recomendador():
         grupo = self.grupos_demograficos[user]
         vecino = self.obtener_vecinos(self.pref_dg, grupo, 1)
         pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
-        pelis_dict = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)#
+        users_vecino = [k for k, v in self.grupos_demograficos.items() if v == vecino[0][0]]
+        pelis_dict = self.ratings[self.ratings.user_id.isin(users_vecino)][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)#
         pelis_vecino = pelis_dict['movie_id'].tolist()
         scores = pelis_dict['rating'].tolist()
         
