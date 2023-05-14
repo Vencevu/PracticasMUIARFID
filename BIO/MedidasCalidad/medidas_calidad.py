@@ -84,8 +84,8 @@ for x in valores_x:
     valorFPFN, umbralFPFN = FP_FN_umbral(x)
     valorFNFP, umbralFNFP = FN_FP_umbral(x)
     print("Para x=%f:" % x)
-    print("     El umbral FN=x es %f y FP(FN=x) es %f" % (umbralFPFN, valorFPFN)) 
-    print("     El umbral FP=x es %f y FN(FP=x) es %f" % (umbralFNFP, valorFNFP))
+    print("     Umbral FN=x es %f y FP(FN=x) es %f" % (umbralFPFN, valorFPFN)) 
+    print("     Umbral FP=x es %f y FN(FP=x) es %f" % (umbralFNFP, valorFNFP))
 
 listaDistancias = []
 for i in range(len(rocX)):
@@ -106,10 +106,10 @@ areaROC = areaROC/(len(scores_clientes)*len(scores_impostores))
 
 fig = plt.figure()
 plt.plot(rocX, rocY)
-plt.fill_between(rocX, rocY, facecolor='blue', alpha=0.25)
-plt.text(0.25, 0.5, areaROC, fontsize=12)
 plt.xlabel("FP")
 plt.ylabel("1-FN")
+plt.text(0.25, 0.5, areaROC, fontsize=11)
+plt.fill_between(rocX, rocY, facecolor='blue', alpha=0.25)
 fig.savefig("curvaRoc.png")
 plt.show()
 
