@@ -8,8 +8,8 @@ from sklearn.neighbors import KNeighborsClassifier
 
 v = int(sys.argv[1])
 
-def read_pgm(name):
-    with open(name) as f:
+def read_pgm(archivo):
+    with open(archivo) as f:
         lines = f.readlines()
 
     for l in list(lines):
@@ -25,44 +25,44 @@ def read_pgm(name):
     return (np.array(data[3:]),(data[1],data[0]),data[2])
 
 def procesarDatos():
-    x_training = []
-    y_training = []
+    x_train = []
+    y_train = []
     x_test = []
     y_test = []
     Nc = []
-    for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Train/", topdown=False):
+    for ruta, _ , archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Train/", topdown=False):
         Nc.append(len(archivos))
         for archivo in archivos:
             etiqueta = int(ruta[-3:].split('s')[1])
-            y_training.append(etiqueta)
+            y_train.append(etiqueta)
             
             imagen = read_pgm(os.path.join(ruta, archivo))
-            x_training.append(imagen[0])
-    for ruta, directorios, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Test/", topdown=False):
+            x_train.append(imagen[0])
+    for ruta, _ , archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Test/", topdown=False):
         for archivo in archivos:
             etiqueta = int(ruta[-3:].split('s')[1])
             y_test.append(etiqueta)
             
             imagen = read_pgm(os.path.join(ruta, archivo))
             x_test.append(imagen[0])
-    x_training = np.asarray(x_training, dtype=np.float64).T
-    y_training = np.asarray(y_training)
+    x_train = np.asarray(x_train, dtype=np.float64).T
+    y_train = np.asarray(y_train)
     x_test = np.asarray(x_test, dtype=np.float64).T
     y_test = np.asarray(y_test)
     
     Nc.pop(0)
-    return x_training, y_training, x_test, y_test, Nc
+    return x_train, y_train, x_test, y_test, Nc
 
-def PCA(x_training, x_test, d_):
-    d = x_training.shape[0]
-    n = x_training.shape[1]
+def PCA(x_train, x_test, d_):
+    d = x_train.shape[0]
+    n = x_train.shape[1]
     
-    mu = np.mean(x_training, axis=1, keepdims=True)
+    mu = np.mean(x_train, axis=1, keepdims=True)
 
     A = np.zeros((d, n), dtype=np.float64)
     A = np.asarray(A)
     for i in range(n):
-        A[:,i] = x_training[:, i] - mu[:,0]
+        A[:,i] = x_train[:, i] - mu[:,0]
 
     C_ = np.dot(A.T, A)
     C_ /= d
@@ -81,14 +81,14 @@ def PCA(x_training, x_test, d_):
 
     Bd = B[:,:d_]
     Bdt = Bd.T
-    x_training_red = np.dot(Bdt, (x_training - mu))
+    x_train_red = np.dot(Bdt, (x_train - mu))
     x_test_red = np.dot(Bdt, (x_test - mu))
 
-    return x_training_red, x_test_red
+    return x_train_red, x_test_red
 
-def kvecino(v, x_training, y_training, x_test, y_test):
+def kvecino(v, x_train, y_train, x_test, y_test):
     vecino = KNeighborsClassifier(n_neighbors = v, metric ='euclidean', p = 2)
-    vecino.fit(x_training.T, y_training)
+    vecino.fit(x_train.T, y_train)
     y_pred = vecino.predict(x_test.T)
     precision = 0
     for i in range(len(y_pred)):
@@ -98,12 +98,12 @@ def kvecino(v, x_training, y_training, x_test, y_test):
     return precision
 
 if __name__ == "__main__":
-    x_training, y_training, x_test, y_test, Nc = procesarDatos()
+    x_train, y_train, x_test, y_test, Nc = procesarDatos()
     precisiones = []
     reducciones = [i for i in np.arange(5, 205, 5)]
     for d_ in reducciones:
-        x_training_red, x_test_red = PCA(x_training, x_test, d_)
-        precision = kvecino(v, x_training_red, y_training, x_test_red, y_test)
+        x_train_red, x_test_red = PCA(x_train, x_test, d_)
+        precision = kvecino(v, x_train_red, y_train, x_test_red, y_test)
         precisiones.append(precision)
 
     max_precision = max(precisiones)
