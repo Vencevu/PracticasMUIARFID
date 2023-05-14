@@ -83,14 +83,9 @@ class Recomendador():
         all_genre = self.generos.genre_name.values.tolist()
         all_genre = ["movie_id"] + all_genre + ["title"]
         self.films_df = pd.read_csv(data_path+"/items.txt",encoding="iso-8859-1" ,names=all_genre, sep="\t")
-        if exists(data_path+"/films.txt"):
-            film_id_df = pd.read_csv(data_path+"/films.txt",encoding="iso-8859-1", sep="\t",names=["movie_id","tmdb_id"])
-            film_id_df['movie_id']=film_id_df['movie_id'].astype(int)
-            self.films_df = self.films_df.merge(film_id_df,on="movie_id")
-        else:
-            film_id_df = self.preprocess_films()
-            self.films_df = self.films_df.merge(film_id_df,on="movie_id")
-        # print(self.films_df)
+        films_tmdb = pd.read_csv(data_path+"/films.txt",encoding="iso-8859-1" ,names=["movie_id", "tmdb_id"], sep="\t")
+        self.films_df = self.films_df.merge(films_tmdb, on="movie_id")
+        
 
     def save_data(self, path='.'):
         self.users_df.to_csv(path+'/users.txt', header=None, index=None, sep='\t', mode='w')
@@ -199,7 +194,6 @@ class Recomendador():
         """
         self.grupos_demograficos = {}
         for user_id in self.users_df.user_id.unique().tolist():
-            print(user_id)
             user = self.users_df[self.users_df.user_id == user_id]
             user_demo_group = self.get_user_type(user.gender.tolist()[0], user.age.tolist()[0], user.occupation.tolist()[0])
             self.grupos_demograficos[user_id] = user_demo_group
@@ -331,7 +325,7 @@ class Recomendador():
 
     def save_user_pref(self,user, user_pref) -> None:
         print(np.asarray(user_pref))
-        print(self.preferencias_coop[user-1])
+        print(self.preferencias_coop[-1])
         if user > self.preferencias_coop.shape[0]:
             self.preferencias_coop = np.append(self.preferencias_coop, [user_pref], axis=0)
             self.save_preferencias()
@@ -390,7 +384,7 @@ class Recomendador():
     def obtener_vecinos(self, preferencias, user, k=1) -> tuple:
         vecinos = [0]*k
         vecinos_score = [0]*k
-        pref = preferencias[user]
+        pref = preferencias[user-1]
         for i in range(0, preferencias.shape[0]):
             if i+1 == user:
                 continue
@@ -399,6 +393,7 @@ class Recomendador():
                 vecinos[vecinos_score.index(min(vecinos_score))] = i + 1
                 vecinos_score[vecinos_score.index(min(vecinos_score))] = score
                 
+        res = (vecinos, vecinos_score)
         return vecinos, vecinos_score
 
     def obtener_recomendacion_cooperativa(self, user, n) -> list:
@@ -412,10 +407,11 @@ class Recomendador():
         list
             Lista con los ids de las películas
         """
-        vecino = self.obtener_vecinos(self.preferencias_coop, 0, 1)
+        vecino = self.obtener_vecinos(self.preferencias_coop, user, 1)
+        print(vecino)
         pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
         pelis_vecino = self.ratings[self.ratings.user_id == vecino[0][0]][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)['movie_id'].tolist()
-        return [[self.tmdb_id(x), np.linalg.norm(self.preferencias_coop[user-1] - self.films_df[self.films_df["movie_id"]==x].iloc[:,1:20])] for x in pelis_vecino if x not in pelis_user][:n]
+        return [[self.tmdb_id(x), np.linalg.norm(self.preferencias_coop[user-1] - self.films_df[self.films_df["movie_id"]==x].iloc[:,1:20])/6] for x in pelis_vecino if x not in pelis_user][:n]
     
     def obtener_recomendacion_contenido(self, user, n) -> list:
         """Obtiene películas recomendadas para un usuario por contenido
@@ -428,11 +424,9 @@ class Recomendador():
         list
             Lista con los ids de las películas
         """
-
-        res = self.films_df.iloc[:, [i + 1 for i in self.generos.loc[np.argpartition(self.preferencias_coop[user-1], -(self.preferencias_coop[user-1].nonzero()[0].shape[0]))[-(self.preferencias_coop[user-1].nonzero()[0].shape[0]):]]['genre_id'].tolist()]].sum(axis=1).sort_values(ascending=False).keys()
-        print(res)
+        userPrefs = self.preferencias_coop[user-1]/5
+        res = self.films_df.iloc[:, [i + 1 for i in self.generos.loc[np.argpartition(userPrefs, -(userPrefs.nonzero()[0].shape[0]))[-(userPrefs.nonzero()[0].shape[0]):]]['genre_id'].tolist()]].sum(axis=1).sort_values(ascending=False).keys()
         return [[self.tmdb_id(x+1), np.linalg.norm(self.preferencias_coop[user-1] - self.films_df[self.films_df["movie_id"]==x+1].iloc[:,1:20])] for x in res[:n]]
-            
 
     def obtener_recomendacion_dg(self, user, n) -> list:
         """Obtiene películas recomendadas por grupo demográfico para un usuario
@@ -452,12 +446,12 @@ class Recomendador():
         grupo = self.grupos_demograficos[user]
         vecino = self.obtener_vecinos(self.pref_dg, grupo, 1)
         pelis_user = self.ratings[self.ratings.user_id == user]['movie_id'].tolist()
-        users_vecino = [k for k, v in self.grupos_demograficos.items() if v == vecino[0][0]]
-        pelis_dict = self.ratings[self.ratings.user_id.isin(users_vecino)][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)#
+        vecinos = [k for k,v in self.grupos_demograficos.items() if v == vecino[0][0] - 1 and k != user]
+        pelis_dict = self.ratings[self.ratings.user_id.isin(vecinos)][['movie_id', 'rating']].sort_values(by=['rating'], ascending=False)
         pelis_vecino = pelis_dict['movie_id'].tolist()
-        scores = pelis_dict['rating'].tolist()
-        
-        return [[self.tmdb_id(x),np.linalg.norm(self.films_df[self.films_df["movie_id"]==x].iloc[:,1:20]-self.pref_dg[grupo-1])] for x in pelis_vecino if x not in pelis_user][:n]
+        res = [[self.tmdb_id(x),np.linalg.norm(self.films_df[self.films_df["movie_id"]==x].iloc[:,1:20]-self.pref_dg[grupo-1])/6] for x in pelis_vecino if x not in pelis_user][:n]
+        res.sort(key = lambda x: x[1],reverse=True )
+        return res
     
     def obtener_recomendacion_hyb(self, user, recomendadores, n) -> list:
         """Obtiene películas recomendadas de modo híbrido para un usuario
@@ -475,16 +469,16 @@ class Recomendador():
             Lista con los ids de las películas
         """
         res = []
-        if 'cooperativo' in recomendadores:
-            res += [i for i in self.obtener_recomendacion_cooperativa(user, n)]
-        if 'contenido' in recomendadores:
-            res += [i for i in self.obtener_recomendacion_contenido(user, n)]
-        if 'demografico' in recomendadores:
-            res += [i for i in self.obtener_recomendacion_dg(user, n)]
+        if recomendadores[0]:
+            res += [i for i in self.obtener_recomendacion_cooperativa(user, int(n/2))]
+        if recomendadores[1]:
+            res += [i for i in self.obtener_recomendacion_contenido(user, int(n/2))]
+        if recomendadores[2]:
+            res += [i for i in self.obtener_recomendacion_dg(user, int(n/2))]
         
         res.sort(key=lambda x: x[1], reverse=True)
 
-        return res
+        return res[:n]
 
     def get_dg_pref(self) -> np.matrix:
         res = []
@@ -540,11 +534,11 @@ class Recomendador():
             d.append((p, self.get_film_id(p)))
 
         res = pd.DataFrame(d, columns=('movie_id', 'tmdb_id'))
-        res.to_csv('../data/films.txt',header=None, index=None, sep='\t', mode='w')
+        res.to_csv('./films.txt',header=None, index=None, sep='\t', mode='w')
         return res
     
     def save_all_neighbours(self):
-        for i in self.users_df["user_id"].to_list()[850:]:
+        for i in self.users_df["user_id"].to_list():
             self.save_user_neighbours(i)
         
     def save_user_neighbours(self, user) -> None:
