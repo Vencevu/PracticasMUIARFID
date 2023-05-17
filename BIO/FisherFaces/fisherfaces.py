@@ -5,7 +5,7 @@ import numpy as np
 from numpy import linalg as LA              
 from sklearn.neighbors import KNeighborsClassifier
 
-def read_pgm(archivo):
+def cargar_pgm(archivo):
     with open(archivo) as f:
         lines = f.readlines()
 
@@ -18,7 +18,7 @@ def read_pgm(archivo):
 
     return np.array(data[3:]), (data[1], data[0]), data[2]
 
-def procesar_datos():
+def cargar_datos():
     x_train = []
     y_train = []
     x_test = []
@@ -30,14 +30,14 @@ def procesar_datos():
             etiqueta = int(ruta[-3:].split('s')[1])
             y_train.append(etiqueta)
             
-            imagen = read_pgm(os.path.join(ruta, archivo))
+            imagen = cargar_pgm(os.path.join(ruta, archivo))
             x_train.append(imagen[0])
     for ruta, _, archivos in os.walk("../data/IDENTIFICACION/ORLProcessed/Test/", topdown=False):
         for archivo in archivos:
             etiqueta = int(ruta[-3:].split('s')[1])
             y_test.append(etiqueta)
             
-            imagen = read_pgm(os.path.join(ruta, archivo))
+            imagen = cargar_pgm(os.path.join(ruta, archivo))
             x_test.append(imagen[0])
     x_train = np.asarray(x_train, dtype=np.float64).T
     y_train = np.asarray(y_train)
@@ -74,7 +74,7 @@ def PCA(x_train, x_test, d_):
 
     return x_train_red, x_test_red
 
-def kvecino(v, x_train, y_train, x_test, y_test):
+def knn(v, x_train, y_train, x_test, y_test):
     vecino = KNeighborsClassifier(n_neighbors=v, metric='euclidean', p=2)
     vecino.fit(x_train.T, y_train)
     y_pred = vecino.predict(x_test.T)
@@ -117,13 +117,13 @@ def LDA(x_training, x_test, Nc, d_):
 
     return x_training_red, x_test_red
 
-x_training, y_training, x_test, y_test, Nc = procesar_datos()
+x_training, y_training, x_test, y_test, Nc = cargar_datos()
 precisiones = []
 reduccionesLDA = np.arange(5, 205, 5)
 for d_lda in reduccionesLDA:
     x_training_pca, x_test_pca = PCA(x_training, x_test, d_pca)
     x_training_lda, x_test_lda = LDA(x_training_pca, x_test_pca, Nc, d_lda)
-    precision = kvecino(v, x_training_lda, y_training, x_test_lda, y_test)
+    precision = knn(v, x_training_lda, y_training, x_test_lda, y_test)
     precisiones.append(precision)
 
 max_precision = max(precisiones)
