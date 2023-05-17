@@ -81,7 +81,7 @@ def knn(v, x_train, y_train, x_test, y_test):
     precision = np.sum(y_pred == y_test) / len(y_pred)
     return precision
 
-v = int(sys.argv[1])
+vecinos = int(sys.argv[1])
 d_pca = int(sys.argv[2])
 
 def LDA(x_training, x_test, Nc, d_):
@@ -123,17 +123,17 @@ reduccionesLDA = np.arange(5, 205, 5)
 for d_lda in reduccionesLDA:
     x_training_pca, x_test_pca = PCA(x_training, x_test, d_pca)
     x_training_lda, x_test_lda = LDA(x_training_pca, x_test_pca, Nc, d_lda)
-    precision = knn(v, x_training_lda, y_training, x_test_lda, y_test)
+    precision = knn(vecinos, x_training_lda, y_training, x_test_lda, y_test)
     precisiones.append(precision)
 
 max_precision = max(precisiones)
 indice = precisiones.index(max_precision)
 mejor_reduccion = reduccionesLDA[indice]
 print(f"Con una reducción previa de PCA de {d_pca}, la mejor reducción con LDA es {mejor_reduccion}, obteniendo una precisión de {max_precision}")
-title = f"Reducción PCA+LDA y Clasificación con {v}-NN"
+title = f"Reducción PCA+LDA y Clasificación con {vecinos}-NN"
 plt.title(title)
 plt.plot(reduccionesLDA, precisiones)
 plt.xlabel(f"Valor de d' para LDA con una reducción previa de {d_pca} con PCA")
 plt.ylabel("Precisión (%)")
-nombre = f"Resultados_PCA_LDA_{v}nn.png"
+nombre = f"Resultados_PCA_LDA_{vecinos}nn.png"
 plt.savefig(nombre)
