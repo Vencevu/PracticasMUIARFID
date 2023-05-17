@@ -5,7 +5,7 @@ import numpy as np
 from numpy import linalg as LA
 from sklearn.neighbors import KNeighborsClassifier
 
-v = int(sys.argv[1])
+vecinos = int(sys.argv[1])
 
 def cargar_pgm(archivo):
     with open(archivo) as f:
@@ -90,17 +90,17 @@ if __name__ == "__main__":
     reducciones = np.arange(5, 205, 5)
     for d_ in reducciones:
         x_train_red, x_test_red = PCA(x_train, x_test, d_)
-        precision = knn(v, x_train_red, y_train, x_test_red, y_test)
+        precision = knn(vecinos, x_train_red, y_train, x_test_red, y_test)
         precisiones.append(precision)
 
     max_precision = max(precisiones)
     indice = precisiones.index(max_precision)
     mejor_reduccion = reducciones[indice]
     print(f"La mejor reducción es {mejor_reduccion}, con una precisión de {max_precision}")
-    title = f"Reducción PCA y Clasificación con {v}-NN"
+    title = f"Reducción PCA y Clasificación con {vecinos}-NN"
     plt.title(title)
     plt.plot(reducciones, precisiones)
     plt.xlabel("Valor de d'")
     plt.ylabel("Precisión (%)")
-    nombre = f"Resultados_PCA_{v}nn.png"
+    nombre = f"Resultados_PCA_{vecinos}nn.png"
     plt.savefig(nombre)
